@@ -1,12 +1,23 @@
+import argparse
 import time
 
 import pybullet as pyb
 import pybullet_data
 
+from src.sim.robot_control import move_arm_to_home, open_gripper, step_simulation
 from src.sim.scene_objects import create_blue_tray, create_red_cube
+from src.sim.test_sim import run_gripper_test
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--test-gripper",
+        action="store_true",
+        help="Run a simple open-close-open gripper test.",
+    )
+    args = parser.parse_args()
+
     # Use GUI for now so we can actually see what the robot is doing.
     pyb.connect(pyb.GUI)
 
@@ -44,33 +55,14 @@ def main():
         joint_type = joint_info[2]
         print(joint_index, joint_name, joint_type)
 
-    # Panda arm joints are 0-6. The finger joints come later.
-    arm_joint_indices = [0, 1, 2, 3, 4, 5, 6]
+    move_arm_to_home(panda_id)
+    step_simulation(seconds=1.0)
 
-    # A simple bent pose that keeps the arm away from singular straight lines.
-    home_pose = [0.0, -0.6, 0.0, -2.2, 0.0, 1.6, 0.8]
+    open_gripper(panda_id)
+    step_simulation(seconds=0.5)
 
-    for joint_index, target_angle in zip(arm_joint_indices, home_pose):
-        pyb.setJointMotorControl2(
-            bodyUniqueId=panda_id,
-            jointIndex=joint_index,
-            controlMode=pyb.POSITION_CONTROL,
-            targetPosition=target_angle,
-            force=500,
-        )
-
-    # These two joints are the Panda finger sliders.
-    gripper_joint_indices = [9, 10]
-    open_gripper_width = 0.04
-
-    for joint_index in gripper_joint_indices:
-        pyb.setJointMotorControl2(
-            bodyUniqueId=panda_id,
-            jointIndex=joint_index,
-            controlMode=pyb.POSITION_CONTROL,
-            targetPosition=open_gripper_width,
-            force=50,
-        )
+    if args.test_gripper:
+        run_gripper_test(panda_id)
 
     # PyBullet does not run physics unless we step it.
     try:
