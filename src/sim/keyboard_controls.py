@@ -10,12 +10,18 @@ from src.sim.robot_control import (
 )
 
 
+manual_mode_active = False
+
+
 def handle_keyboard_controls(panda_id):
+    global manual_mode_active
+
     keys = pyb.getKeyboardEvents()
 
     if ord("h") in keys and keys[ord("h")] & pyb.KEY_WAS_TRIGGERED:
         print("Keyboard: home pose")
         exit_manual_mode(panda_id)
+        manual_mode_active = False
         move_arm_to_home(panda_id)
 
     if ord("o") in keys and keys[ord("o")] & pyb.KEY_WAS_TRIGGERED:
@@ -27,8 +33,13 @@ def handle_keyboard_controls(panda_id):
         close_gripper(panda_id)
 
     if ord("r") in keys and keys[ord("r")] & pyb.KEY_WAS_TRIGGERED:
+        if manual_mode_active:
+            print("Keyboard: manual mode already active")
+            return
+
         print("Keyboard: manual mode")
         enter_manual_mode(panda_id)
+        manual_mode_active = True
 
     for arm_joint_number in range(1, 8):
         key = ord(str(arm_joint_number))

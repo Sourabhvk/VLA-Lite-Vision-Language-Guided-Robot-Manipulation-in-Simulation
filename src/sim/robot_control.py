@@ -29,6 +29,13 @@ def move_arm_to_home(panda_id):
 def relax_arm(panda_id):
     # Motors stop fighting the GUI joint dragger.
     for joint_index in ARM_JOINT_INDICES:
+        current_angle = pyb.getJointState(panda_id, joint_index)[0]
+        pyb.resetJointState(
+            bodyUniqueId=panda_id,
+            jointIndex=joint_index,
+            targetValue=current_angle,
+            targetVelocity=0,
+        )
         pyb.setJointMotorControl2(
             bodyUniqueId=panda_id,
             jointIndex=joint_index,
