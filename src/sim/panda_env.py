@@ -4,6 +4,7 @@ import time
 import pybullet as pyb
 import pybullet_data
 
+from src.sim.keyboard_controls import handle_keyboard_controls
 from src.sim.robot_control import move_arm_to_home, open_gripper, step_simulation
 from src.sim.scene_objects import create_blue_tray, create_red_cube
 from src.sim.test_sim import run_gripper_test
@@ -55,11 +56,14 @@ def main():
         joint_type = joint_info[2]
         print(joint_index, joint_name, joint_type)
 
+    print("Scene loaded. Starting motion in 5 seconds...")
+    step_simulation(seconds=5.0)
+
     move_arm_to_home(panda_id)
-    step_simulation(seconds=1.0)
+    step_simulation(seconds=2.0)
 
     open_gripper(panda_id)
-    step_simulation(seconds=0.5)
+    step_simulation(seconds=1.5)
 
     if args.test_gripper:
         run_gripper_test(panda_id)
@@ -67,6 +71,7 @@ def main():
     # PyBullet does not run physics unless we step it.
     try:
         while True:
+            handle_keyboard_controls(panda_id)
             pyb.stepSimulation()
             time.sleep(1.0 / 240.0)
     except KeyboardInterrupt:
