@@ -2,6 +2,7 @@ import pybullet as pyb
 
 from src.sim.camera_controls import set_camera_view
 from src.sim.contact_debug import print_contacts_for_body
+from src.language.simple_parser import parse_command
 from src.sim.logging_utils import log
 from src.sim.routines import pick_and_place
 from src.sim.robot_control import (
@@ -11,7 +12,7 @@ from src.sim.robot_control import (
     move_arm_to_home,
     open_gripper,
 )
-from src.sim.scene_objects import BLUE_TRAY_POSITION, RED_CUBE_POSITION
+from src.sim.scene_registry import get_object_position
 
 
 APPROACH_HEIGHT_OFFSET = 0.25
@@ -50,20 +51,17 @@ def handle_keyboard_controls(panda_id, cube_id=None):
         set_camera_view("top")
 
     if key_pressed(keys, "p"):
+        cube_position = get_object_position("red_cube")
         target_position = [
-            RED_CUBE_POSITION[0],
-            RED_CUBE_POSITION[1],
-            RED_CUBE_POSITION[2] + APPROACH_HEIGHT_OFFSET,
+            cube_position[0],
+            cube_position[1],
+            cube_position[2] + APPROACH_HEIGHT_OFFSET,
         ]
         log(f"Keyboard: move above cube {target_position}")
         move_ee_to_position(panda_id, target_position)
 
     if key_pressed(keys, "l"):
-        target_position = [
-            RED_CUBE_POSITION[0],
-            RED_CUBE_POSITION[1],
-            RED_CUBE_POSITION[2],
-        ]
+        target_position = get_object_position("red_cube")
         log(f"Keyboard: lower toward cube {target_position}")
         move_ee_to_position(panda_id, target_position)
 
@@ -72,19 +70,21 @@ def handle_keyboard_controls(panda_id, cube_id=None):
         move_ee_up(panda_id)
 
     if key_pressed(keys, "b"):
+        tray_position = get_object_position("blue_tray")
         target_position = [
-            BLUE_TRAY_POSITION[0],
-            BLUE_TRAY_POSITION[1],
-            BLUE_TRAY_POSITION[2] + APPROACH_HEIGHT_OFFSET,
+            tray_position[0],
+            tray_position[1],
+            tray_position[2] + APPROACH_HEIGHT_OFFSET,
         ]
         log(f"Keyboard: move above blue tray {target_position}")
         move_ee_to_position(panda_id, target_position)
 
     if key_pressed(keys, "d"):
+        tray_position = get_object_position("blue_tray")
         target_position = [
-            BLUE_TRAY_POSITION[0],
-            BLUE_TRAY_POSITION[1],
-            BLUE_TRAY_POSITION[2] + 0.08,
+            tray_position[0],
+            tray_position[1],
+            tray_position[2] + 0.08,
         ]
         log(f"Keyboard: lower toward blue tray {target_position}")
         move_ee_to_position(panda_id, target_position)
@@ -95,4 +95,17 @@ def handle_keyboard_controls(panda_id, cube_id=None):
             print_contacts_for_body(cube_id, "Red cube")
 
     if key_pressed(keys, "a"):
-        pick_and_place(panda_id, RED_CUBE_POSITION, BLUE_TRAY_POSITION)
+        pick_and_place(
+            panda_id,
+            get_object_position("red_cube"),
+            get_object_position("blue_tray"),
+        )
+
+    if key_pressed(keys, "m"):
+        task = parse_command("pick red cube and place in blue tray")
+        print(task)
+        pick_and_place(
+            panda_id,
+            get_object_position(task["source"]),
+            get_object_position(task["target"]),
+        )

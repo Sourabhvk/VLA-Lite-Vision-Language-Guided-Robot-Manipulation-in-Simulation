@@ -1,15 +1,30 @@
+import random
+
 import pybullet as pyb
 
 
 RED_CUBE_POSITION = (0.5, 0, 0.03)
 BLUE_TRAY_POSITION = (0.35, -0.35, 0.01)
+CUBE_X_RANGE = (0.43, 0.62)
+CUBE_Y_RANGE = (-0.18, 0.18)
 CUBE_LATERAL_FRICTION = 2.0
 CUBE_SPINNING_FRICTION = 0.02
 CUBE_ROLLING_FRICTION = 0.02
 
 
-def create_red_cube(position=RED_CUBE_POSITION):
+def sample_red_cube_position():
+    return (
+        random.uniform(*CUBE_X_RANGE),
+        random.uniform(*CUBE_Y_RANGE),
+        RED_CUBE_POSITION[2],
+    )
+
+
+def create_red_cube(position=None):
     # Keep the cube small enough for the Panda gripper.
+    if position is None:
+        position = sample_red_cube_position()
+
     cube_half_size = 0.03
     cube_collision_id = pyb.createCollisionShape(
         shapeType=pyb.GEOM_BOX,
@@ -36,7 +51,7 @@ def create_red_cube(position=RED_CUBE_POSITION):
         rollingFriction=CUBE_ROLLING_FRICTION,
     )
 
-    return cube_id
+    return cube_id, position
 
 
 def create_blue_tray(position=BLUE_TRAY_POSITION):

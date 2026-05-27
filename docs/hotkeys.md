@@ -16,6 +16,7 @@ Click inside the PyBullet window before pressing keys.
 | `d` | Lower gripper toward the blue tray |
 | `x` | Print active contact points |
 | `a` | Run scripted pick-and-place |
+| `m` | Parse text command and execute it |
 
 ## Camera controls
 
@@ -29,4 +30,6 @@ Click inside the PyBullet window before pressing keys.
 
 - Basic pick-and-place test: press `p`, `l`, `c`, `u`, `b`, `d`, then `o`.
 - Automated pick-and-place test: press `a`.
-- `p` and `l` use hardcoded cube coordinates for now. Vision will replace those later.
+- Command-driven test: press `m`.
+- The red cube spawns randomly inside a conservative reachable workspace.
+- `p`, `l`, `a`, and `m` use the current scene registry position. Vision will update that registry later.
