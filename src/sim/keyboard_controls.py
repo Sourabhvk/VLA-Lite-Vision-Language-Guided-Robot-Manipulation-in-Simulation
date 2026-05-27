@@ -1,7 +1,7 @@
 import pybullet as pyb
 
+from src.perception.camera import save_rgb_frame
 from src.sim.camera_controls import set_camera_view
-from src.sim.contact_debug import print_contacts_for_body
 from src.language.simple_parser import parse_command
 from src.sim.logging_utils import log
 from src.sim.routines import pick_and_place
@@ -23,7 +23,7 @@ def key_pressed(keys, key):
     return key_code in keys and keys[key_code] & pyb.KEY_WAS_TRIGGERED
 
 
-def handle_keyboard_controls(panda_id, cube_id=None):
+def handle_keyboard_controls(panda_id):
     keys = pyb.getKeyboardEvents()
 
     if key_pressed(keys, "h"):
@@ -89,10 +89,8 @@ def handle_keyboard_controls(panda_id, cube_id=None):
         log(f"Keyboard: lower toward blue tray {target_position}")
         move_ee_to_position(panda_id, target_position)
 
-    if key_pressed(keys, "x"):
-        print_contacts_for_body(panda_id, "Panda")
-        if cube_id is not None:
-            print_contacts_for_body(cube_id, "Red cube")
+    if key_pressed(keys, "i"):
+        save_rgb_frame(panda_id)
 
     if key_pressed(keys, "a"):
         pick_and_place(

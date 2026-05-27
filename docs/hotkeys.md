@@ -14,7 +14,7 @@ Click inside the PyBullet window before pressing keys.
 | `u` | Lift gripper upward |
 | `b` | Move gripper above the blue tray |
 | `d` | Lower gripper toward the blue tray |
-| `x` | Print active contact points |
+| `i` | Capture and save wrist-camera RGB image |
 | `a` | Run scripted pick-and-place |
 | `m` | Parse text command and execute it |
 

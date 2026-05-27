@@ -5,6 +5,7 @@ import pybullet as pyb
 import pybullet_data
 
 from src.sim.camera_controls import set_camera_view
+from src.sim.failsafe import has_interference, stop_robot
 from src.sim.keyboard_controls import handle_keyboard_controls
 from src.sim.logging_utils import set_verbose
 from src.sim.robot_control import (
@@ -43,7 +44,7 @@ def main():
     pyb.setAdditionalSearchPath(pybullet_data.getDataPath())
     pyb.setGravity(0, 0, -9.81)
 
-    pyb.loadURDF("plane.urdf")
+    plane_id = pyb.loadURDF("plane.urdf")
 
     # Fixed base keeps the arm bolted to the table/world.
     panda_id = pyb.loadURDF(
@@ -54,7 +55,7 @@ def main():
 
     cube_id, cube_position = create_red_cube()
     set_object_position("red_cube", cube_position)
-    create_blue_tray()
+    tray_id = create_blue_tray()
     configure_gripper_friction(panda_id)
 
     if args.verbose:
@@ -82,7 +83,10 @@ def main():
     # PyBullet does not run physics unless we step it.
     try:
         while True:
-            handle_keyboard_controls(panda_id, cube_id)
+            handle_keyboard_controls(panda_id)
+            if has_interference(panda_id, cube_id, tray_id, plane_id):
+                print("Failsafe: interference detected, stopping robot")
+                stop_robot(panda_id)
             pyb.stepSimulation()
             time.sleep(1.0 / 240.0)
     except KeyboardInterrupt:
