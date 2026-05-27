@@ -1,10 +1,12 @@
 import pybullet as pyb
 
+from src.sim.camera_controls import set_camera_view
 from src.sim.robot_control import (
     close_gripper,
     enter_manual_mode,
     exit_manual_mode,
     move_ee_to_position,
+    move_ee_up,
     move_arm_to_home,
     nudge_arm_joint,
     open_gripper,
@@ -33,6 +35,18 @@ def handle_keyboard_controls(panda_id):
     if ord("c") in keys and keys[ord("c")] & pyb.KEY_WAS_TRIGGERED:
         print("Keyboard: close gripper")
         close_gripper(panda_id)
+
+    if ord("f") in keys and keys[ord("f")] & pyb.KEY_WAS_TRIGGERED:
+        print("Keyboard: front camera")
+        set_camera_view("front")
+
+    if ord("v") in keys and keys[ord("v")] & pyb.KEY_WAS_TRIGGERED:
+        print("Keyboard: side camera")
+        set_camera_view("side")
+
+    if ord("t") in keys and keys[ord("t")] & pyb.KEY_WAS_TRIGGERED:
+        print("Keyboard: top camera")
+        set_camera_view("top")
 
     if ord("r") in keys and keys[ord("r")] & pyb.KEY_WAS_TRIGGERED:
         if manual_mode_active:
@@ -64,6 +78,12 @@ def handle_keyboard_controls(panda_id):
         exit_manual_mode(panda_id)
         manual_mode_active = False
         move_ee_to_position(panda_id, target_position)
+
+    if ord("u") in keys and keys[ord("u")] & pyb.KEY_WAS_TRIGGERED:
+        print("Keyboard: lift gripper")
+        exit_manual_mode(panda_id)
+        manual_mode_active = False
+        move_ee_up(panda_id)
 
     for arm_joint_number in range(1, 8):
         key = ord(str(arm_joint_number))

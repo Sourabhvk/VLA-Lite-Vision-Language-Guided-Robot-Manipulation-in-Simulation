@@ -90,10 +90,13 @@ def nudge_arm_joint(panda_id, arm_joint_number):
 
 def move_ee_to_position(panda_id, target_position):
     # IK converts a gripper target position into arm joint targets.
+    # This keeps the wrist pointing down instead of inheriting a random pose.
+    gripper_orientation = pyb.getQuaternionFromEuler([3.14159, 0, 0])
     joint_targets = pyb.calculateInverseKinematics(
         bodyUniqueId=panda_id,
         endEffectorLinkIndex=END_EFFECTOR_LINK_INDEX,
         targetPosition=target_position,
+        targetOrientation=gripper_orientation,
     )
 
     for joint_index, target_angle in zip(ARM_JOINT_INDICES, joint_targets):
@@ -105,6 +108,18 @@ def move_ee_to_position(panda_id, target_position):
             force=500,
             maxVelocity=0.25,
         )
+
+
+def move_ee_up(panda_id, distance=0.25):
+    ee_state = pyb.getLinkState(panda_id, END_EFFECTOR_LINK_INDEX)
+    current_position = ee_state[0]
+    target_position = [
+        current_position[0],
+        current_position[1],
+        current_position[2] + distance,
+    ]
+
+    move_ee_to_position(panda_id, target_position)
 
 
 def open_gripper(panda_id):

@@ -4,6 +4,7 @@ import time
 import pybullet as pyb
 import pybullet_data
 
+from src.sim.camera_controls import set_camera_view
 from src.sim.keyboard_controls import handle_keyboard_controls
 from src.sim.robot_control import move_arm_to_home, open_gripper, step_simulation
 from src.sim.scene_objects import create_blue_tray, create_red_cube
@@ -23,12 +24,7 @@ def main():
     pyb.connect(pyb.GUI)
 
     # Start the debug camera at a useful angle for this tabletop scene.
-    pyb.resetDebugVisualizerCamera(
-        cameraDistance=1.2,
-        cameraYaw=45,
-        cameraPitch=-35,
-        cameraTargetPosition=[0.35, 0, 0.2],
-    )
+    set_camera_view("front")
 
     # Lets PyBullet find built-in URDFs like the plane and Franka Panda.
     pyb.setAdditionalSearchPath(pybullet_data.getDataPath())
