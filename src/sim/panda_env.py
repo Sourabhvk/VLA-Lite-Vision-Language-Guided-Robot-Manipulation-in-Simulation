@@ -6,6 +6,7 @@ import pybullet_data
 
 from src.sim.camera_controls import set_camera_view
 from src.sim.keyboard_controls import handle_keyboard_controls
+from src.sim.logging_utils import set_verbose
 from src.sim.robot_control import (
     configure_gripper_friction,
     move_arm_to_home,
@@ -23,7 +24,13 @@ def main():
         action="store_true",
         help="Run a simple open-close-open gripper test.",
     )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Print joint metadata and keyboard action logs.",
+    )
     args = parser.parse_args()
+    set_verbose(args.verbose)
 
     # Use GUI for now so we can actually see what the robot is doing.
     pyb.connect(pyb.GUI)
@@ -48,15 +55,15 @@ def main():
     create_blue_tray()
     configure_gripper_friction(panda_id)
 
-    # Print joints once so we know which indices control the arm and gripper.
-    num_joints = pyb.getNumJoints(panda_id)
-    print(f"Panda loaded with {num_joints} joints")
+    if args.verbose:
+        num_joints = pyb.getNumJoints(panda_id)
+        print(f"Panda loaded with {num_joints} joints")
 
-    for joint_index in range(num_joints):
-        joint_info = pyb.getJointInfo(panda_id, joint_index)
-        joint_name = joint_info[1].decode("utf-8")
-        joint_type = joint_info[2]
-        print(joint_index, joint_name, joint_type)
+        for joint_index in range(num_joints):
+            joint_info = pyb.getJointInfo(panda_id, joint_index)
+            joint_name = joint_info[1].decode("utf-8")
+            joint_type = joint_info[2]
+            print(joint_index, joint_name, joint_type)
 
     print("Scene loaded. Starting motion in 5 seconds...")
     step_simulation(seconds=5.0)
