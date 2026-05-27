@@ -31,5 +31,6 @@ Click inside the PyBullet window before pressing keys.
 - Basic pick-and-place test: press `p`, `l`, `c`, `u`, `b`, `d`, then `o`.
 - Automated pick-and-place test: press `a`.
 - Command-driven test: press `m`.
+- Wrist camera captures are saved under `outputs/`.
 - The red cube spawns randomly inside a conservative reachable workspace.
 - `p`, `l`, `a`, and `m` use the current scene registry position. Vision will update that registry later.

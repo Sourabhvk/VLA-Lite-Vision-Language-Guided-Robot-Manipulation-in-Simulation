@@ -1,6 +1,6 @@
 import pybullet as pyb
 
-from src.sim.robot_control import ARM_JOINT_INDICES
+from src.sim.robot_control import ARM_JOINT_INDICES, ARM_MOTOR_FORCE
 
 
 GRIPPER_LINKS = {9, 10}
@@ -32,6 +32,6 @@ def stop_robot(panda_id):
             jointIndex=joint_index,
             controlMode=pyb.POSITION_CONTROL,
             targetPosition=current_angle,
-            force=500,
+            force=ARM_MOTOR_FORCE,
             maxVelocity=0,
         )

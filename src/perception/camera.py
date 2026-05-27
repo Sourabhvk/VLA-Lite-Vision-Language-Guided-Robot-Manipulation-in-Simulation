@@ -1,5 +1,5 @@
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -8,9 +8,9 @@ import pybullet as pyb
 from src.sim.robot_control import END_EFFECTOR_LINK_INDEX
 
 
-IMAGE_WIDTH = 640
-IMAGE_HEIGHT = 480
-CAMERA_FOV = 75
+IMAGE_WIDTH = 1280
+IMAGE_HEIGHT = 720
+CAMERA_FOV = 60
 CAMERA_WORLD_OFFSET = [0.12, 0.0, 0.12]
 CAMERA_LOOK_OFFSET = [0.18, 0.0, -0.28]
 CAMERA_UP = [0, 0, 1]
@@ -20,7 +20,7 @@ def get_wrist_camera_pose(panda_id):
     link_state = pyb.getLinkState(panda_id, END_EFFECTOR_LINK_INDEX)
     position = np.array(link_state[0])
 
-    # Follow the wrist, but mount the camera above/behind the gripper.
+    # Follow the wrist from the tuned camera mount.
     eye = position + np.array(CAMERA_WORLD_OFFSET)
     target = position + np.array(CAMERA_LOOK_OFFSET)
     return eye.tolist(), target.tolist(), CAMERA_UP
@@ -46,6 +46,7 @@ def capture_rgbd(panda_id, width=IMAGE_WIDTH, height=IMAGE_HEIGHT):
         height,
         viewMatrix=view_matrix,
         projectionMatrix=projection_matrix,
+        renderer=pyb.ER_BULLET_HARDWARE_OPENGL,
     )
 
     # PyBullet gives RGBA; OpenCV/color detection usually wants RGB/BGR.
