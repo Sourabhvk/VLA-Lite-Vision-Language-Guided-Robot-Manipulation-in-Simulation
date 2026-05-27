@@ -5,12 +5,10 @@ import pybullet as pyb
 ARM_JOINT_INDICES = [0, 1, 2, 3, 4, 5, 6]
 GRIPPER_JOINT_INDICES = [9, 10]
 END_EFFECTOR_LINK_INDEX = 11
-JOINT_NUDGE_AMOUNT = 0.15
 
 DEFAULT_SPEEDS = {
     "home_max_velocity": 0.25,
     "ik_max_velocity": 0.25,
-    "nudge_max_velocity": 0.2,
     "gripper_max_velocity": 0.02,
 }
 
@@ -57,67 +55,6 @@ def move_arm_to_home(panda_id):
             force=500,
             maxVelocity=SPEEDS["home_max_velocity"],
         )
-
-
-def relax_arm(panda_id):
-    # Motors stop fighting the GUI joint dragger.
-    for joint_index in ARM_JOINT_INDICES:
-        current_angle = pyb.getJointState(panda_id, joint_index)[0]
-        pyb.resetJointState(
-            bodyUniqueId=panda_id,
-            jointIndex=joint_index,
-            targetValue=current_angle,
-            targetVelocity=0,
-        )
-        pyb.setJointMotorControl2(
-            bodyUniqueId=panda_id,
-            jointIndex=joint_index,
-            controlMode=pyb.VELOCITY_CONTROL,
-            force=0,
-        )
-
-
-def set_manual_damping(panda_id, enabled):
-    # Damping keeps the arm from drifting forever after a mouse drag.
-    linear_damping = 0.95 if enabled else 0.04
-    angular_damping = 0.95 if enabled else 0.04
-    joint_damping = 2.0 if enabled else 0.04
-
-    for link_index in range(-1, pyb.getNumJoints(panda_id)):
-        pyb.changeDynamics(
-            panda_id,
-            link_index,
-            linearDamping=linear_damping,
-            angularDamping=angular_damping,
-            jointDamping=joint_damping,
-        )
-
-
-def enter_manual_mode(panda_id):
-    # With motors relaxed, gravity would make the arm collapse.
-    pyb.setGravity(0, 0, 0)
-    set_manual_damping(panda_id, enabled=True)
-    relax_arm(panda_id)
-
-
-def exit_manual_mode(panda_id):
-    pyb.setGravity(0, 0, -9.81)
-    set_manual_damping(panda_id, enabled=False)
-
-
-def nudge_arm_joint(panda_id, arm_joint_number):
-    joint_index = ARM_JOINT_INDICES[arm_joint_number - 1]
-    current_angle = pyb.getJointState(panda_id, joint_index)[0]
-    target_angle = current_angle + JOINT_NUDGE_AMOUNT
-
-    pyb.setJointMotorControl2(
-        bodyUniqueId=panda_id,
-        jointIndex=joint_index,
-        controlMode=pyb.POSITION_CONTROL,
-        targetPosition=target_angle,
-        force=250,
-        maxVelocity=SPEEDS["nudge_max_velocity"],
-    )
 
 
 def move_ee_to_position(panda_id, target_position):
