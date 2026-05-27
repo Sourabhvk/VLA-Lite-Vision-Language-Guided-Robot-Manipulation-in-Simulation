@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -12,10 +13,11 @@ from src.sim.routines import pick_and_place
 from src.sim.scene_objects import create_blue_tray, create_red_cube
 
 
-RUNS = 100
+RUNS = 1000
 TRAY_HALF_X = 0.12
 TRAY_HALF_Y = 0.08
-OUTPUT_DIR = Path("outputs/testing")
+CUBE_HALF_SIZE = 0.03
+OUTPUT_ROOT = Path("outputs/testing")
 
 
 def cube_in_tray(cube_id, tray_position):
@@ -24,6 +26,13 @@ def cube_in_tray(cube_id, tray_position):
         abs(cube_position[0] - tray_position[0]) <= TRAY_HALF_X
         and abs(cube_position[1] - tray_position[1]) <= TRAY_HALF_Y
         and cube_position[2] > 0.02
+    )
+
+
+def cube_intersects_tray(cube_position, tray_position):
+    return (
+        abs(cube_position[0] - tray_position[0]) <= TRAY_HALF_X + CUBE_HALF_SIZE
+        and abs(cube_position[1] - tray_position[1]) <= TRAY_HALF_Y + CUBE_HALF_SIZE
     )
 
 
@@ -53,45 +62,58 @@ def reset_scene():
 def main():
     pyb.connect(pyb.DIRECT)
     results = []
+    output_dir = make_output_dir()
 
     for run_index in range(1, RUNS + 1):
         panda_id, cube_id, cube_position, tray_position = reset_scene()
-        pick_and_place(panda_id, cube_position, tray_position)
-        step_simulation(seconds=1.0)
+        initial_overlap = cube_intersects_tray(cube_position, tray_position)
 
-        success = cube_in_tray(cube_id, tray_position)
-        results.append((run_index, cube_position, tray_position, success))
-        print(f"{run_index:03d}: {'PASS' if success else 'FAIL'}")
+        if not initial_overlap:
+            pick_and_place(panda_id, cube_position, tray_position)
+            step_simulation(seconds=1.0)
+
+        success = False if initial_overlap else cube_in_tray(cube_id, tray_position)
+        results.append((run_index, cube_position, tray_position, success, initial_overlap))
+        status = "OVERLAP" if initial_overlap else "PASS" if success else "FAIL"
+        print(f"{run_index:03d}: {status}")
 
     pyb.disconnect()
-    write_results(results)
-    plot_start_positions(results)
-    plot_failure_heatmap(results)
+    write_results(results, output_dir)
+    plot_start_positions(results, output_dir)
+    plot_failure_heatmap(results, output_dir)
+    write_report(results, output_dir)
     print_summary(results)
 
 
-def write_results(results):
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    path = OUTPUT_DIR / "pick_place_results.csv"
+def make_output_dir():
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_dir = OUTPUT_ROOT / f"run_{timestamp}"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    return output_dir
+
+
+def write_results(results, output_dir):
+    path = output_dir / "pick_place_results.csv"
 
     with path.open("w") as file:
-        file.write("run,cube_x,cube_y,cube_z,tray_x,tray_y,tray_z,success\n")
-        for run_index, cube_position, tray_position, success in results:
+        file.write("run,cube_x,cube_y,cube_z,tray_x,tray_y,tray_z,success,initial_overlap\n")
+        for run_index, cube_position, tray_position, success, initial_overlap in results:
             file.write(
                 f"{run_index},{cube_position[0]:.6f},{cube_position[1]:.6f},"
                 f"{cube_position[2]:.6f},{tray_position[0]:.6f},"
-                f"{tray_position[1]:.6f},{tray_position[2]:.6f},{int(success)}\n"
+                f"{tray_position[1]:.6f},{tray_position[2]:.6f},"
+                f"{int(success)},{int(initial_overlap)}\n"
             )
 
     print(f"Saved results: {path}")
 
 
-def plot_start_positions(results):
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    path = OUTPUT_DIR / "start_positions.png"
+def plot_start_positions(results, output_dir):
+    path = output_dir / "start_positions.png"
 
     passed = [result for result in results if result[3]]
-    failed = [result for result in results if not result[3]]
+    failed = [result for result in results if not result[3] and not result[4]]
+    overlaps = [result for result in results if result[4]]
 
     if passed:
         plt.scatter(
@@ -106,6 +128,14 @@ def plot_start_positions(results):
             [result[1][1] for result in failed],
             c="red",
             label="fail",
+        )
+    if overlaps:
+        plt.scatter(
+            [result[1][0] for result in overlaps],
+            [result[1][1] for result in overlaps],
+            c="orange",
+            marker="s",
+            label="initial overlap",
         )
     plt.scatter(
         [result[2][0] for result in results],
@@ -125,10 +155,9 @@ def plot_start_positions(results):
     print(f"Saved plot: {path}")
 
 
-def plot_failure_heatmap(results):
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    path = OUTPUT_DIR / "failure_heatmap.png"
-    failed = [result for result in results if not result[3]]
+def plot_failure_heatmap(results, output_dir):
+    path = output_dir / "failure_heatmap.png"
+    failed = [result for result in results if not result[3] and not result[4]]
 
     if not failed:
         print("Skipped failure heatmap: no failures")
@@ -157,11 +186,36 @@ def plot_failure_heatmap(results):
     print(f"Saved heatmap: {path}")
 
 
+def write_report(results, output_dir):
+    successes = sum(1 for result in results if result[3])
+    overlaps = sum(1 for result in results if result[4])
+    failures = [result[1] for result in results if not result[3] and not result[4]]
+    success_rate = successes / RUNS
+    path = output_dir / "report.md"
+
+    with path.open("w") as file:
+        file.write("# Pick-and-Place Test Report\n\n")
+        file.write(f"- Runs: {RUNS}\n")
+        file.write(f"- Successes: {successes}\n")
+        file.write(f"- Success rate: {success_rate:.2%}\n")
+        file.write(f"- Initial cube/tray overlaps: {overlaps}\n")
+        file.write(f"- Non-overlap failures: {len(failures)}\n\n")
+
+        file.write("## Artifacts\n\n")
+        file.write("- `pick_place_results.csv`\n")
+        file.write("- `start_positions.png`\n")
+        file.write("- `failure_heatmap.png`\n")
+
+    print(f"Saved report: {path}")
+
+
 def print_summary(results):
     successes = sum(1 for result in results if result[3])
-    failures = [result[1] for result in results if not result[3]]
+    overlaps = sum(1 for result in results if result[4])
+    failures = [result[1] for result in results if not result[3] and not result[4]]
 
     print(f"Success rate: {successes}/{RUNS}")
+    print(f"Initial overlap cases: {overlaps}/{RUNS}")
     print_failure_summary(failures)
 
 

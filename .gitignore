@@ -21,6 +21,10 @@ dist/
 htmlcov/
 timings_*.json
 outputs/
+!outputs/
+outputs/*
+!outputs/testing/
+!outputs/testing/**
 
 # Local config
 .env
