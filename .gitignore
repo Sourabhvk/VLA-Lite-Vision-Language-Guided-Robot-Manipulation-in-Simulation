@@ -25,6 +25,7 @@ timings_*.json
 .env
 .env.*
 !.env.example
+config/robot_speeds.txt
 
 # Editors/OS
 .vscode/

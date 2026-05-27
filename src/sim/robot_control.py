@@ -1,9 +1,41 @@
+from pathlib import Path
+
 import pybullet as pyb
 
 ARM_JOINT_INDICES = [0, 1, 2, 3, 4, 5, 6]
 GRIPPER_JOINT_INDICES = [9, 10]
 END_EFFECTOR_LINK_INDEX = 11
 JOINT_NUDGE_AMOUNT = 0.15
+
+DEFAULT_SPEEDS = {
+    "home_max_velocity": 0.25,
+    "ik_max_velocity": 0.25,
+    "nudge_max_velocity": 0.2,
+    "gripper_max_velocity": 0.02,
+}
+
+
+def load_speed_config():
+    config_path = Path(__file__).resolve().parents[2] / "config" / "robot_speeds.txt"
+    speeds = DEFAULT_SPEEDS.copy()
+
+    if not config_path.exists():
+        return speeds
+
+    for line in config_path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if key in speeds:
+            speeds[key] = float(value.strip())
+
+    return speeds
+
+
+SPEEDS = load_speed_config()
 
 
 def step_simulation(seconds=1.0, hz=240):
@@ -23,7 +55,7 @@ def move_arm_to_home(panda_id):
             controlMode=pyb.POSITION_CONTROL,
             targetPosition=target_angle,
             force=500,
-            maxVelocity=0.25,
+            maxVelocity=SPEEDS["home_max_velocity"],
         )
 
 
@@ -84,7 +116,7 @@ def nudge_arm_joint(panda_id, arm_joint_number):
         controlMode=pyb.POSITION_CONTROL,
         targetPosition=target_angle,
         force=250,
-        maxVelocity=0.2,
+        maxVelocity=SPEEDS["nudge_max_velocity"],
     )
 
 
@@ -106,7 +138,7 @@ def move_ee_to_position(panda_id, target_position):
             controlMode=pyb.POSITION_CONTROL,
             targetPosition=target_angle,
             force=500,
-            maxVelocity=0.25,
+            maxVelocity=SPEEDS["ik_max_velocity"],
         )
 
 
@@ -133,7 +165,7 @@ def open_gripper(panda_id):
             controlMode=pyb.POSITION_CONTROL,
             targetPosition=open_gripper_width,
             force=100,
-            maxVelocity=0.02,
+            maxVelocity=SPEEDS["gripper_max_velocity"],
         )
 
 
@@ -148,7 +180,7 @@ def close_gripper(panda_id):
             controlMode=pyb.POSITION_CONTROL,
             targetPosition=closed_gripper_width,
             force=100,
-            maxVelocity=0.02,
+            maxVelocity=SPEEDS["gripper_max_velocity"],
         )
 
 

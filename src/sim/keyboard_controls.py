@@ -72,7 +72,10 @@ def handle_keyboard_controls(panda_id):
         target_position = [
             RED_CUBE_POSITION[0],
             RED_CUBE_POSITION[1],
-            RED_CUBE_POSITION[2] + 0.07,
+            RED_CUBE_POSITION[2] + 0.0, 
+            #For the PyBullet Franka Panda specifically, link
+            #index 11 is commonly treated as the Panda 
+            #end-effector/grasp target link.
         ]
         print(f"Keyboard: lower toward cube {target_position}")
         exit_manual_mode(panda_id)
