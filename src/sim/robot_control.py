@@ -2,6 +2,7 @@ import pybullet as pyb
 
 ARM_JOINT_INDICES = [0, 1, 2, 3, 4, 5, 6]
 GRIPPER_JOINT_INDICES = [9, 10]
+END_EFFECTOR_LINK_INDEX = 11
 JOINT_NUDGE_AMOUNT = 0.15
 
 
@@ -85,6 +86,25 @@ def nudge_arm_joint(panda_id, arm_joint_number):
         force=250,
         maxVelocity=0.2,
     )
+
+
+def move_ee_to_position(panda_id, target_position):
+    # IK converts a gripper target position into arm joint targets.
+    joint_targets = pyb.calculateInverseKinematics(
+        bodyUniqueId=panda_id,
+        endEffectorLinkIndex=END_EFFECTOR_LINK_INDEX,
+        targetPosition=target_position,
+    )
+
+    for joint_index, target_angle in zip(ARM_JOINT_INDICES, joint_targets):
+        pyb.setJointMotorControl2(
+            bodyUniqueId=panda_id,
+            jointIndex=joint_index,
+            controlMode=pyb.POSITION_CONTROL,
+            targetPosition=target_angle,
+            force=500,
+            maxVelocity=0.25,
+        )
 
 
 def open_gripper(panda_id):

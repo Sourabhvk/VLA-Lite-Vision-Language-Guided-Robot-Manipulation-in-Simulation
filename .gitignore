@@ -19,6 +19,7 @@ dist/
 .ruff_cache/
 .coverage
 htmlcov/
+timings_*.json
 
 # Local config
 .env

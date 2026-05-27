@@ -1,6 +1,11 @@
 import pybullet as pyb
 
-def create_red_cube(position=(0.5, 0, 0.03)):
+
+RED_CUBE_POSITION = (0.5, 0, 0.03)
+BLUE_TRAY_POSITION = (0.35, -0.35, 0.01)
+
+
+def create_red_cube(position=RED_CUBE_POSITION):
     # Keep the cube small enough for the Panda gripper.
     cube_half_size = 0.03
     cube_collision_id = pyb.createCollisionShape(
@@ -21,7 +26,7 @@ def create_red_cube(position=(0.5, 0, 0.03)):
     )
 
 
-def create_blue_tray(position=(0.35, -0.35, 0.01)):
+def create_blue_tray(position=BLUE_TRAY_POSITION):
     # For now the tray is a flat target zone, not a real container.
     tray_half_extents = [0.12, 0.08, 0.01]
     tray_collision_id = pyb.createCollisionShape(
