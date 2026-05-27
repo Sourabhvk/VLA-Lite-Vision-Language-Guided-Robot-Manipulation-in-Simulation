@@ -10,7 +10,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from src.sim.robot_control import configure_gripper_friction, move_arm_to_home, open_gripper, step_simulation
 from src.sim.routines import pick_and_place
-from src.sim.scene_objects import create_blue_tray, create_red_cube
+from src.sim.scene_objects import create_blue_tray, create_red_cube, sample_scene_positions
 
 
 RUNS = 1000
@@ -47,8 +47,10 @@ def reset_scene():
         basePosition=[0, 0, 0],
         useFixedBase=True,
     )
-    cube_id, cube_position = create_red_cube()
-    _, tray_position = create_blue_tray()
+    # Use the same valid scene sampler as the interactive simulation.
+    cube_position, tray_position = sample_scene_positions()
+    cube_id, cube_position = create_red_cube(cube_position)
+    create_blue_tray(tray_position)
     configure_gripper_friction(panda_id)
 
     move_arm_to_home(panda_id)

@@ -14,7 +14,7 @@ from src.sim.robot_control import (
     open_gripper,
     step_simulation,
 )
-from src.sim.scene_objects import create_blue_tray, create_red_cube
+from src.sim.scene_objects import create_blue_tray, create_red_cube, sample_scene_positions
 from src.sim.scene_registry import set_object_position
 from src.sim.test_sim import run_gripper_test
 
@@ -53,9 +53,11 @@ def main():
         useFixedBase=True,
     )
 
-    cube_id, cube_position = create_red_cube()
+    # Sample both together so randomized starts are valid.
+    cube_position, tray_position = sample_scene_positions()
+    cube_id, cube_position = create_red_cube(cube_position)
     set_object_position("red_cube", cube_position)
-    tray_id, tray_position = create_blue_tray()
+    tray_id, tray_position = create_blue_tray(tray_position)
     set_object_position("blue_tray", tray_position)
     configure_gripper_friction(panda_id)
 

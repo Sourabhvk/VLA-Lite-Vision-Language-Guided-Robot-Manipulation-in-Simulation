@@ -9,6 +9,8 @@ CUBE_X_RANGE = (0.35, 0.68)
 CUBE_Y_RANGE = (-0.28, 0.28)
 TRAY_X_RANGE = (0.28, 0.45)
 TRAY_Y_RANGE = (-0.42, -0.25)
+TRAY_HALF_EXTENTS = [0.12, 0.08, 0.01]
+CUBE_HALF_SIZE = 0.03
 CUBE_LATERAL_FRICTION = 2.0
 CUBE_SPINNING_FRICTION = 0.02
 CUBE_ROLLING_FRICTION = 0.02
@@ -30,19 +32,37 @@ def sample_blue_tray_position():
     )
 
 
+def positions_overlap(cube_position, tray_position):
+    # Compare 2D footprints on the table; z is fixed for both objects.
+    return (
+        abs(cube_position[0] - tray_position[0]) <= TRAY_HALF_EXTENTS[0] + CUBE_HALF_SIZE
+        and abs(cube_position[1] - tray_position[1]) <= TRAY_HALF_EXTENTS[1] + CUBE_HALF_SIZE
+    )
+
+
+def sample_scene_positions():
+    # Reject invalid randomized scenes where the cube starts inside the tray.
+    for _ in range(100):
+        cube_position = sample_red_cube_position()
+        tray_position = sample_blue_tray_position()
+        if not positions_overlap(cube_position, tray_position):
+            return cube_position, tray_position
+
+    raise RuntimeError("Could not sample non-overlapping cube/tray positions")
+
+
 def create_red_cube(position=None):
     # Keep the cube small enough for the Panda gripper.
     if position is None:
         position = sample_red_cube_position()
 
-    cube_half_size = 0.03
     cube_collision_id = pyb.createCollisionShape(
         shapeType=pyb.GEOM_BOX,
-        halfExtents=[cube_half_size, cube_half_size, cube_half_size],
+        halfExtents=[CUBE_HALF_SIZE, CUBE_HALF_SIZE, CUBE_HALF_SIZE],
     )
     cube_visual_id = pyb.createVisualShape(
         shapeType=pyb.GEOM_BOX,
-        halfExtents=[cube_half_size, cube_half_size, cube_half_size],
+        halfExtents=[CUBE_HALF_SIZE, CUBE_HALF_SIZE, CUBE_HALF_SIZE],
         rgbaColor=[1, 0, 0, 1],
     )
 
@@ -69,14 +89,13 @@ def create_blue_tray(position=None):
     if position is None:
         position = sample_blue_tray_position()
 
-    tray_half_extents = [0.12, 0.08, 0.01]
     tray_collision_id = pyb.createCollisionShape(
         shapeType=pyb.GEOM_BOX,
-        halfExtents=tray_half_extents,
+        halfExtents=TRAY_HALF_EXTENTS,
     )
     tray_visual_id = pyb.createVisualShape(
         shapeType=pyb.GEOM_BOX,
-        halfExtents=tray_half_extents,
+        halfExtents=TRAY_HALF_EXTENTS,
         rgbaColor=[0, 0.2, 1, 1],
     )
 
