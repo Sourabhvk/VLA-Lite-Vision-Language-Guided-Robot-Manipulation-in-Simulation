@@ -55,7 +55,8 @@ def main():
 
     cube_id, cube_position = create_red_cube()
     set_object_position("red_cube", cube_position)
-    tray_id = create_blue_tray()
+    tray_id, tray_position = create_blue_tray()
+    set_object_position("blue_tray", tray_position)
     configure_gripper_friction(panda_id)
 
     if args.verbose:

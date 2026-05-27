@@ -15,6 +15,9 @@ Click inside the PyBullet window before pressing keys.
 | `b` | Move gripper above the blue tray |
 | `d` | Lower gripper toward the blue tray |
 | `i` | Capture and save wrist-camera RGB image |
+| `y` | Detect red cube in wrist-camera image |
+| `q` | Detect red cube and move above it |
+| `j` | Vision-based red-cube pick-and-place |
 | `a` | Run scripted pick-and-place |
 | `m` | Parse text command and execute it |
 

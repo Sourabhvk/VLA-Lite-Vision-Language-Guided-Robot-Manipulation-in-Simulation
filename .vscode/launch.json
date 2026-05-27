@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Panda Env",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "src.sim.panda_env",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
+}

@@ -5,8 +5,10 @@ import pybullet as pyb
 
 RED_CUBE_POSITION = (0.5, 0, 0.03)
 BLUE_TRAY_POSITION = (0.35, -0.35, 0.01)
-CUBE_X_RANGE = (0.43, 0.62)
-CUBE_Y_RANGE = (-0.18, 0.18)
+CUBE_X_RANGE = (0.35, 0.68)
+CUBE_Y_RANGE = (-0.28, 0.28)
+TRAY_X_RANGE = (0.28, 0.45)
+TRAY_Y_RANGE = (-0.42, -0.25)
 CUBE_LATERAL_FRICTION = 2.0
 CUBE_SPINNING_FRICTION = 0.02
 CUBE_ROLLING_FRICTION = 0.02
@@ -17,6 +19,14 @@ def sample_red_cube_position():
         random.uniform(*CUBE_X_RANGE),
         random.uniform(*CUBE_Y_RANGE),
         RED_CUBE_POSITION[2],
+    )
+
+
+def sample_blue_tray_position():
+    return (
+        random.uniform(*TRAY_X_RANGE),
+        random.uniform(*TRAY_Y_RANGE),
+        BLUE_TRAY_POSITION[2],
     )
 
 
@@ -54,8 +64,11 @@ def create_red_cube(position=None):
     return cube_id, position
 
 
-def create_blue_tray(position=BLUE_TRAY_POSITION):
+def create_blue_tray(position=None):
     # For now the tray is a flat target zone, not a real container.
+    if position is None:
+        position = sample_blue_tray_position()
+
     tray_half_extents = [0.12, 0.08, 0.01]
     tray_collision_id = pyb.createCollisionShape(
         shapeType=pyb.GEOM_BOX,
@@ -67,9 +80,11 @@ def create_blue_tray(position=BLUE_TRAY_POSITION):
         rgbaColor=[0, 0.2, 1, 1],
     )
 
-    return pyb.createMultiBody(
+    tray_id = pyb.createMultiBody(
         baseMass=0,
         baseCollisionShapeIndex=tray_collision_id,
         baseVisualShapeIndex=tray_visual_id,
         basePosition=position,
     )
+
+    return tray_id, position

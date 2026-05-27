@@ -1,6 +1,8 @@
 import pybullet as pyb
 
 from src.perception.camera import save_rgb_frame
+from src.perception.object_localizer import localize_red_cube
+from src.perception.vision_routines import vision_pick_and_place_red_cube
 from src.sim.camera_controls import set_camera_view
 from src.language.simple_parser import parse_command
 from src.sim.logging_utils import log
@@ -91,6 +93,22 @@ def handle_keyboard_controls(panda_id):
 
     if key_pressed(keys, "i"):
         save_rgb_frame(panda_id)
+
+    if key_pressed(keys, "y"):
+        localize_red_cube(panda_id)
+
+    if key_pressed(keys, "q"):
+        cube_position = localize_red_cube(panda_id)
+        if cube_position is not None:
+            target_position = [
+                cube_position[0],
+                cube_position[1],
+                cube_position[2] + APPROACH_HEIGHT_OFFSET,
+            ]
+            move_ee_to_position(panda_id, target_position)
+
+    if key_pressed(keys, "j"):
+        vision_pick_and_place_red_cube(panda_id)
 
     if key_pressed(keys, "a"):
         pick_and_place(

@@ -30,6 +30,8 @@ config/robot_speeds.txt
 
 # Editors/OS
 .vscode/
+!.vscode/
+!.vscode/launch.json
 .idea/
 .DS_Store
 Thumbs.db

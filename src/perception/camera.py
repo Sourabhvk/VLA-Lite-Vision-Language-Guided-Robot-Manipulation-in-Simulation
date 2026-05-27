@@ -52,11 +52,33 @@ def capture_rgbd(panda_id, width=IMAGE_WIDTH, height=IMAGE_HEIGHT):
     # PyBullet gives RGBA; OpenCV/color detection usually wants RGB/BGR.
     rgb = np.array(rgba, dtype=np.uint8).reshape(height, width, 4)[:, :, :3]
     depth = np.array(depth).reshape(height, width)
-    return rgb, depth
+    return rgb, depth, view_matrix, projection_matrix
+
+
+def pixel_to_world(pixel, depth, view_matrix, projection_matrix, image_shape):
+    x, y = pixel
+    height, width = image_shape[:2]
+
+    # PyBullet depth is an OpenGL z-buffer value in [0, 1].
+    z_buffer = depth[y, x]
+
+    # Convert pixel coordinates into normalized device coordinates.
+    ndc_x = (2.0 * x / width) - 1.0
+    ndc_y = 1.0 - (2.0 * y / height)
+    ndc_z = (2.0 * z_buffer) - 1.0
+
+    clip_space_point = np.array([ndc_x, ndc_y, ndc_z, 1.0])
+    view_matrix = np.array(view_matrix).reshape(4, 4, order="F")
+    projection_matrix = np.array(projection_matrix).reshape(4, 4, order="F")
+
+    # Reverse projection and view transforms to get a PyBullet world point.
+    world_point = np.linalg.inv(projection_matrix @ view_matrix) @ clip_space_point
+    world_point /= world_point[3]
+    return world_point[:3]
 
 
 def save_rgb_frame(panda_id, path=None):
-    rgb, _ = capture_rgbd(panda_id)
+    rgb, _, _, _ = capture_rgbd(panda_id)
     if path is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         path = f"outputs/wrist_camera_rgb_{timestamp}.png"
