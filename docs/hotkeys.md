@@ -15,6 +15,7 @@ Click inside the PyBullet window before pressing keys.
 | `b` | Move gripper above the blue tray |
 | `d` | Lower gripper toward the blue tray |
 | `x` | Print active contact points |
+| `a` | Run scripted pick-and-place |
 
 ## Camera controls
 
@@ -27,4 +28,5 @@ Click inside the PyBullet window before pressing keys.
 ## Test Flow
 
 - Basic pick-and-place test: press `p`, `l`, `c`, `u`, `b`, `d`, then `o`.
+- Automated pick-and-place test: press `a`.
 - `p` and `l` use hardcoded cube coordinates for now. Vision will replace those later.

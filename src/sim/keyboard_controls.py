@@ -3,6 +3,7 @@ import pybullet as pyb
 from src.sim.camera_controls import set_camera_view
 from src.sim.contact_debug import print_contacts_for_body
 from src.sim.logging_utils import log
+from src.sim.routines import pick_and_place
 from src.sim.robot_control import (
     close_gripper,
     move_ee_to_position,
@@ -92,3 +93,6 @@ def handle_keyboard_controls(panda_id, cube_id=None):
         print_contacts_for_body(panda_id, "Panda")
         if cube_id is not None:
             print_contacts_for_body(cube_id, "Red cube")
+
+    if key_pressed(keys, "a"):
+        pick_and_place(panda_id, RED_CUBE_POSITION, BLUE_TRAY_POSITION)
