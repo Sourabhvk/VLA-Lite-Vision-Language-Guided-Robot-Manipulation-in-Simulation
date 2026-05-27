@@ -5,6 +5,11 @@ import pybullet as pyb
 ARM_JOINT_INDICES = [0, 1, 2, 3, 4, 5, 6]
 GRIPPER_JOINT_INDICES = [9, 10]
 END_EFFECTOR_LINK_INDEX = 11
+HOME_POSE = [0.0, -0.6, 0.0, -2.2, 0.0, 1.6, 0.8]
+OPEN_GRIPPER_WIDTH = 0.04
+CLOSED_GRIPPER_WIDTH = 0.0
+ARM_MOTOR_FORCE = 500
+GRIPPER_MOTOR_FORCE = 100
 
 DEFAULT_SPEEDS = {
     "home_max_velocity": 0.25,
@@ -44,15 +49,13 @@ def step_simulation(seconds=1.0, hz=240):
 
 def move_arm_to_home(panda_id):
     # A simple bent pose that keeps the arm away from singular straight lines.
-    home_pose = [0.0, -0.6, 0.0, -2.2, 0.0, 1.6, 0.8]
-
-    for joint_index, target_angle in zip(ARM_JOINT_INDICES, home_pose):
+    for joint_index, target_angle in zip(ARM_JOINT_INDICES, HOME_POSE):
         pyb.setJointMotorControl2(
             bodyUniqueId=panda_id,
             jointIndex=joint_index,
             controlMode=pyb.POSITION_CONTROL,
             targetPosition=target_angle,
-            force=500,
+            force=ARM_MOTOR_FORCE,
             maxVelocity=SPEEDS["home_max_velocity"],
         )
 
@@ -74,7 +77,7 @@ def move_ee_to_position(panda_id, target_position):
             jointIndex=joint_index,
             controlMode=pyb.POSITION_CONTROL,
             targetPosition=target_angle,
-            force=500,
+            force=ARM_MOTOR_FORCE,
             maxVelocity=SPEEDS["ik_max_velocity"],
         )
 
@@ -91,34 +94,26 @@ def move_ee_up(panda_id, distance=0.25):
     move_ee_to_position(panda_id, target_position)
 
 
-def open_gripper(panda_id):
-    # These joints slide the two fingers apart.
-    open_gripper_width = 0.04
-
+def set_gripper_width(panda_id, target_width):
     for joint_index in GRIPPER_JOINT_INDICES:
         pyb.setJointMotorControl2(
             bodyUniqueId=panda_id,
             jointIndex=joint_index,
             controlMode=pyb.POSITION_CONTROL,
-            targetPosition=open_gripper_width,
-            force=100,
+            targetPosition=target_width,
+            force=GRIPPER_MOTOR_FORCE,
             maxVelocity=SPEEDS["gripper_max_velocity"],
         )
+
+
+def open_gripper(panda_id):
+    # These joints slide the two fingers apart.
+    set_gripper_width(panda_id, OPEN_GRIPPER_WIDTH)
 
 
 def close_gripper(panda_id):
     # Fully closed is useful for testing before we grab real objects.
-    closed_gripper_width = 0.0
-
-    for joint_index in GRIPPER_JOINT_INDICES:
-        pyb.setJointMotorControl2(
-            bodyUniqueId=panda_id,
-            jointIndex=joint_index,
-            controlMode=pyb.POSITION_CONTROL,
-            targetPosition=closed_gripper_width,
-            force=100,
-            maxVelocity=SPEEDS["gripper_max_velocity"],
-        )
+    set_gripper_width(panda_id, CLOSED_GRIPPER_WIDTH)
 
 
 def print_gripper_state(panda_id):

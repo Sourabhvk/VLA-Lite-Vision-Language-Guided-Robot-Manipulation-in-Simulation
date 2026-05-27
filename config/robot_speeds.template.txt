@@ -3,5 +3,4 @@
 
 home_max_velocity=0.6
 ik_max_velocity=0.6
-nudge_max_velocity=0.4
-gripper_max_velocity=0.0
+gripper_max_velocity=0.05
