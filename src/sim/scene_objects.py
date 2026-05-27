@@ -3,6 +3,9 @@ import pybullet as pyb
 
 RED_CUBE_POSITION = (0.5, 0, 0.03)
 BLUE_TRAY_POSITION = (0.35, -0.35, 0.01)
+CUBE_LATERAL_FRICTION = 2.0
+CUBE_SPINNING_FRICTION = 0.02
+CUBE_ROLLING_FRICTION = 0.02
 
 
 def create_red_cube(position=RED_CUBE_POSITION):
@@ -18,12 +21,22 @@ def create_red_cube(position=RED_CUBE_POSITION):
         rgbaColor=[1, 0, 0, 1],
     )
 
-    return pyb.createMultiBody(
+    cube_id = pyb.createMultiBody(
         baseMass=0.1,
         baseCollisionShapeIndex=cube_collision_id,
         baseVisualShapeIndex=cube_visual_id,
         basePosition=position,
     )
+
+    pyb.changeDynamics(
+        cube_id,
+        -1,
+        lateralFriction=CUBE_LATERAL_FRICTION,
+        spinningFriction=CUBE_SPINNING_FRICTION,
+        rollingFriction=CUBE_ROLLING_FRICTION,
+    )
+
+    return cube_id
 
 
 def create_blue_tray(position=BLUE_TRAY_POSITION):

@@ -9,7 +9,8 @@ HOME_POSE = [0.0, -0.6, 0.0, -2.2, 0.0, 1.6, 0.8]
 OPEN_GRIPPER_WIDTH = 0.04
 CLOSED_GRIPPER_WIDTH = 0.0
 ARM_MOTOR_FORCE = 500
-GRIPPER_MOTOR_FORCE = 100
+GRIPPER_MOTOR_FORCE = 200
+FINGER_LATERAL_FRICTION = 2.0
 
 DEFAULT_SPEEDS = {
     "home_max_velocity": 0.25,
@@ -57,6 +58,15 @@ def move_arm_to_home(panda_id):
             targetPosition=target_angle,
             force=ARM_MOTOR_FORCE,
             maxVelocity=SPEEDS["home_max_velocity"],
+        )
+
+
+def configure_gripper_friction(panda_id):
+    for joint_index in GRIPPER_JOINT_INDICES:
+        pyb.changeDynamics(
+            panda_id,
+            joint_index,
+            lateralFriction=FINGER_LATERAL_FRICTION,
         )
 
 

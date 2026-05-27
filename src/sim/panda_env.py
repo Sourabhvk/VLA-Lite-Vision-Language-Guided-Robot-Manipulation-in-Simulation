@@ -6,7 +6,12 @@ import pybullet_data
 
 from src.sim.camera_controls import set_camera_view
 from src.sim.keyboard_controls import handle_keyboard_controls
-from src.sim.robot_control import move_arm_to_home, open_gripper, step_simulation
+from src.sim.robot_control import (
+    configure_gripper_friction,
+    move_arm_to_home,
+    open_gripper,
+    step_simulation,
+)
 from src.sim.scene_objects import create_blue_tray, create_red_cube
 from src.sim.test_sim import run_gripper_test
 
@@ -39,8 +44,9 @@ def main():
         useFixedBase=True,
     )
 
-    create_red_cube()
+    cube_id = create_red_cube()
     create_blue_tray()
+    configure_gripper_friction(panda_id)
 
     # Print joints once so we know which indices control the arm and gripper.
     num_joints = pyb.getNumJoints(panda_id)
@@ -67,7 +73,7 @@ def main():
     # PyBullet does not run physics unless we step it.
     try:
         while True:
-            handle_keyboard_controls(panda_id)
+            handle_keyboard_controls(panda_id, cube_id)
             pyb.stepSimulation()
             time.sleep(1.0 / 240.0)
     except KeyboardInterrupt:

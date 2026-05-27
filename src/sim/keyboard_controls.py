@@ -1,6 +1,7 @@
 import pybullet as pyb
 
 from src.sim.camera_controls import set_camera_view
+from src.sim.contact_debug import print_contacts_for_body
 from src.sim.robot_control import (
     close_gripper,
     move_ee_to_position,
@@ -8,7 +9,7 @@ from src.sim.robot_control import (
     move_arm_to_home,
     open_gripper,
 )
-from src.sim.scene_objects import RED_CUBE_POSITION
+from src.sim.scene_objects import BLUE_TRAY_POSITION, RED_CUBE_POSITION
 
 
 APPROACH_HEIGHT_OFFSET = 0.25
@@ -19,7 +20,7 @@ def key_pressed(keys, key):
     return key_code in keys and keys[key_code] & pyb.KEY_WAS_TRIGGERED
 
 
-def handle_keyboard_controls(panda_id):
+def handle_keyboard_controls(panda_id, cube_id=None):
     keys = pyb.getKeyboardEvents()
 
     if key_pressed(keys, "h"):
@@ -67,3 +68,26 @@ def handle_keyboard_controls(panda_id):
     if key_pressed(keys, "u"):
         print("Keyboard: lift gripper")
         move_ee_up(panda_id)
+
+    if key_pressed(keys, "b"):
+        target_position = [
+            BLUE_TRAY_POSITION[0],
+            BLUE_TRAY_POSITION[1],
+            BLUE_TRAY_POSITION[2] + APPROACH_HEIGHT_OFFSET,
+        ]
+        print(f"Keyboard: move above blue tray {target_position}")
+        move_ee_to_position(panda_id, target_position)
+
+    if key_pressed(keys, "d"):
+        target_position = [
+            BLUE_TRAY_POSITION[0],
+            BLUE_TRAY_POSITION[1],
+            BLUE_TRAY_POSITION[2] + 0.08,
+        ]
+        print(f"Keyboard: lower toward blue tray {target_position}")
+        move_ee_to_position(panda_id, target_position)
+
+    if key_pressed(keys, "x"):
+        print_contacts_for_body(panda_id, "Panda")
+        if cube_id is not None:
+            print_contacts_for_body(cube_id, "Red cube")
