@@ -18,6 +18,8 @@ TRAY_HALF_X = 0.12
 TRAY_HALF_Y = 0.08
 CUBE_HALF_SIZE = 0.03
 OUTPUT_ROOT = Path("outputs/testing")
+ROBOT_BASE_POSITION = (0.0, 0.0)
+WORLD_ORIGIN = (0.0, 0.0)
 
 
 def cube_in_tray(cube_id, tray_position):
@@ -146,6 +148,7 @@ def plot_start_positions(results, output_dir):
         marker="x",
         label="tray",
     )
+    add_reference_markers()
 
     plt.xlabel("cube start x")
     plt.ylabel("cube start y")
@@ -165,12 +168,14 @@ def plot_failure_heatmap(results, output_dir):
         print("Skipped failure heatmap: no failures")
         return
 
-    plt.hist2d(
+    counts, _, _, image = plt.hist2d(
         [result[1][0] for result in failed],
         [result[1][1] for result in failed],
         bins=8,
         cmap="Reds",
+        vmin=0,
     )
+    image.set_clim(0, max(1, counts.max()))
     plt.scatter(
         [result[2][0] for result in results],
         [result[2][1] for result in results],
@@ -178,6 +183,7 @@ def plot_failure_heatmap(results, output_dir):
         marker="x",
         label="tray",
     )
+    add_reference_markers()
     plt.colorbar(label="failure count")
     plt.xlabel("cube start x")
     plt.ylabel("cube start y")
@@ -186,6 +192,11 @@ def plot_failure_heatmap(results, output_dir):
     plt.savefig(path)
     plt.close()
     print(f"Saved heatmap: {path}")
+
+
+def add_reference_markers():
+    plt.scatter(*ROBOT_BASE_POSITION, c="black", marker="+", s=120, label="robot base")
+    plt.scatter(*WORLD_ORIGIN, c="purple", marker="o", s=40, label="world origin")
 
 
 def write_report(results, output_dir):

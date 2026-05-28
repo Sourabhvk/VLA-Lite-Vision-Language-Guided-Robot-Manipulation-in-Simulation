@@ -71,15 +71,9 @@ def configure_gripper_friction(panda_id):
 
 
 def move_ee_to_position(panda_id, target_position):
-    # IK converts a gripper target position into arm joint targets.
-    # This keeps the wrist pointing down instead of inheriting a random pose.
-    gripper_orientation = pyb.getQuaternionFromEuler([3.14159, 0, 0])
-    joint_targets = pyb.calculateInverseKinematics(
-        bodyUniqueId=panda_id,
-        endEffectorLinkIndex=END_EFFECTOR_LINK_INDEX,
-        targetPosition=target_position,
-        targetOrientation=gripper_orientation,
-    )
+    from src.sim.ik_solver import solve_panda_ik
+
+    joint_targets = solve_panda_ik(panda_id, target_position)
 
     for joint_index, target_angle in zip(ARM_JOINT_INDICES, joint_targets):
         pyb.setJointMotorControl2(
