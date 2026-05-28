@@ -50,7 +50,8 @@ def reset_scene():
         useFixedBase=True,
     )
     # Use the same valid scene sampler as the interactive simulation.
-    cube_position, tray_position = sample_scene_positions()
+    cube_positions, tray_position = sample_scene_positions()
+    cube_position = cube_positions[0]
     cube_id, cube_position = create_red_cube(cube_position)
     create_blue_tray(tray_position)
     configure_gripper_friction(panda_id)

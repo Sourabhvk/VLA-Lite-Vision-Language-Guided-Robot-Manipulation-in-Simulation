@@ -1,6 +1,5 @@
 import pybullet as pyb
 
-
 CAMERA_VIEWS = {
     "front": {
         "cameraDistance": 0.9,
@@ -21,7 +20,6 @@ CAMERA_VIEWS = {
         "cameraTargetPosition": [0.45, 0, 0],
     },
 }
-
 
 def set_camera_view(name):
     view = CAMERA_VIEWS[name]

@@ -16,37 +16,45 @@ CUBE_SPINNING_FRICTION = 0.02
 CUBE_ROLLING_FRICTION = 0.02
 
 
-def sample_red_cube_position():
+def sample_position(x_range, y_range, z):
     return (
-        random.uniform(*CUBE_X_RANGE),
-        random.uniform(*CUBE_Y_RANGE),
-        RED_CUBE_POSITION[2],
+        random.uniform(*x_range),
+        random.uniform(*y_range),
+        z,
     )
+
+
+def sample_red_cube_position():
+    return sample_position(CUBE_X_RANGE, CUBE_Y_RANGE, RED_CUBE_POSITION[2])
 
 
 def sample_blue_tray_position():
-    return (
-        random.uniform(*TRAY_X_RANGE),
-        random.uniform(*TRAY_Y_RANGE),
-        BLUE_TRAY_POSITION[2],
-    )
+    return sample_position(TRAY_X_RANGE, TRAY_Y_RANGE, BLUE_TRAY_POSITION[2])
 
 
-def positions_overlap(cube_position, tray_position):
+def footprints_overlap(position_a, half_extents_a, position_b, half_extents_b):
     # Compare 2D footprints on the table; z is fixed for both objects.
     return (
-        abs(cube_position[0] - tray_position[0]) <= TRAY_HALF_EXTENTS[0] + CUBE_HALF_SIZE
-        and abs(cube_position[1] - tray_position[1]) <= TRAY_HALF_EXTENTS[1] + CUBE_HALF_SIZE
+        abs(position_a[0] - position_b[0]) <= half_extents_a[0] + half_extents_b[0]
+        and abs(position_a[1] - position_b[1]) <= half_extents_a[1] + half_extents_b[1]
     )
 
 
-def sample_scene_positions():
+def sample_scene_positions(extra_cube_count=0):
     # Reject invalid randomized scenes where the cube starts inside the tray.
     for _ in range(100):
-        cube_position = sample_red_cube_position()
+        cube_positions = [sample_red_cube_position() for _ in range(extra_cube_count + 1)]
         tray_position = sample_blue_tray_position()
-        if not positions_overlap(cube_position, tray_position):
-            return cube_position, tray_position
+        if all(
+            not footprints_overlap(
+                cube_position,
+                [CUBE_HALF_SIZE, CUBE_HALF_SIZE],
+                tray_position,
+                TRAY_HALF_EXTENTS,
+            )
+            for cube_position in cube_positions
+        ):
+            return cube_positions, tray_position
 
     raise RuntimeError("Could not sample non-overlapping cube/tray positions")
 
@@ -81,6 +89,12 @@ def create_red_cube(position=None):
         rollingFriction=CUBE_ROLLING_FRICTION,
     )
 
+    return cube_id, position
+
+
+def create_extra_cube(position=None):
+    cube_id, position = create_red_cube(position)
+    pyb.changeVisualShape(cube_id, -1, rgbaColor=[random.random(), random.random(), random.random(), 1])
     return cube_id, position
 
 

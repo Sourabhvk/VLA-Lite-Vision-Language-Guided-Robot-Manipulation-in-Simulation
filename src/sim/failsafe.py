@@ -2,9 +2,7 @@ import pybullet as pyb
 
 from src.sim.robot_control import ARM_JOINT_INDICES, ARM_MOTOR_FORCE
 
-
 GRIPPER_LINKS = {9, 10}
-
 
 def has_interference(panda_id, cube_id=None, tray_id=None, plane_id=None):
     for contact in pyb.getContactPoints(bodyA=panda_id):

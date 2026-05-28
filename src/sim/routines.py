@@ -5,11 +5,10 @@ from src.sim.robot_control import (
     step_simulation,
 )
 
-
 APPROACH_HEIGHT_OFFSET = 0.25
 TRAY_DROP_HEIGHT_OFFSET = 0.08
 
-
+#routine for pick and place, used in keyboard controls and failsafe
 def pick_and_place(panda_id, source_position, target_position):
     source_above = [
         source_position[0],

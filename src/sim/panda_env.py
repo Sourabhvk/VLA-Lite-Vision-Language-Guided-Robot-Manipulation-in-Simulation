@@ -14,10 +14,14 @@ from src.sim.robot_control import (
     open_gripper,
     step_simulation,
 )
-from src.sim.scene_objects import create_blue_tray, create_red_cube, sample_scene_positions
+from src.sim.scene_objects import (
+    create_blue_tray,
+    create_extra_cube,
+    create_red_cube,
+    sample_scene_positions,
+)
 from src.sim.scene_registry import set_object_position
-from src.sim.test_sim import run_gripper_test
-
+from src.testing.test_sim import run_gripper_test
 
 def main():
     parser = argparse.ArgumentParser()
@@ -30,6 +34,12 @@ def main():
         "--verbose",
         action="store_true",
         help="Print joint metadata and keyboard action logs.",
+    )
+    parser.add_argument(
+        "--extra-cubes",
+        type=int,
+        default=0,
+        help="Spawn extra distractor cubes in addition to the red cube.",
     )
     args = parser.parse_args()
     set_verbose(args.verbose)
@@ -54,8 +64,11 @@ def main():
     )
 
     # Sample both together so randomized starts are valid.
-    cube_position, tray_position = sample_scene_positions()
+    cube_positions, tray_position = sample_scene_positions(args.extra_cubes)
+    cube_position = cube_positions[0]
     cube_id, cube_position = create_red_cube(cube_position)
+    for extra_cube_position in cube_positions[1:]:
+        create_extra_cube(extra_cube_position)
     set_object_position("red_cube", cube_position)
     tray_id, tray_position = create_blue_tray(tray_position)
     set_object_position("blue_tray", tray_position)

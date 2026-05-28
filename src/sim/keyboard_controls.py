@@ -16,14 +16,12 @@ from src.sim.robot_control import (
 )
 from src.sim.scene_registry import get_object_position
 
-
-APPROACH_HEIGHT_OFFSET = 0.25
-
+#offset to picku cube 
+APPROACH_HEIGHT_OFFSET = 0.25 
 
 def key_pressed(keys, key):
     key_code = ord(key)
     return key_code in keys and keys[key_code] & pyb.KEY_WAS_TRIGGERED
-
 
 def handle_keyboard_controls(panda_id):
     keys = pyb.getKeyboardEvents()
