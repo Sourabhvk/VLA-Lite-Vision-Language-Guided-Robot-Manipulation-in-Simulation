@@ -6,6 +6,8 @@ from src.sim.robot_control import (
 )
 
 APPROACH_HEIGHT_OFFSET = 0.25
+PRE_GRASP_HEIGHT_OFFSET = 0.08
+GRASP_Z_OFFSET = 0.0
 TRAY_DROP_HEIGHT_OFFSET = 0.08
 
 #routine for pick and place, used in keyboard controls and failsafe
@@ -14,6 +16,16 @@ def pick_and_place(panda_id, source_position, target_position):
         source_position[0],
         source_position[1],
         source_position[2] + APPROACH_HEIGHT_OFFSET,
+    ]
+    source_pre_grasp = [
+        source_position[0],
+        source_position[1],
+        source_position[2] + PRE_GRASP_HEIGHT_OFFSET,
+    ]
+    source_grasp = [
+        source_position[0],
+        source_position[1],
+        source_position[2] + GRASP_Z_OFFSET,
     ]
     target_above = [
         target_position[0],
@@ -29,8 +41,11 @@ def pick_and_place(panda_id, source_position, target_position):
     move_ee_to_position(panda_id, source_above)
     step_simulation(seconds=1.2)
 
-    move_ee_to_position(panda_id, source_position)
-    step_simulation(seconds=1.2)
+    move_ee_to_position(panda_id, source_pre_grasp)
+    step_simulation(seconds=0.8)
+
+    move_ee_to_position(panda_id, source_grasp)
+    step_simulation(seconds=1.0)
 
     close_gripper(panda_id)
     step_simulation(seconds=0.8)
