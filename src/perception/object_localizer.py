@@ -8,7 +8,7 @@ def localize_red_cube(panda_id):
     detection, mask = detect_red_cube(rgb)
 
     if detection is None:
-        print("Red cube not detected")
+        print("Red cube not detected with enough confidence")
         save_red_detection_debug(rgb, detection)
         return None
 
@@ -25,6 +25,6 @@ def localize_red_cube(panda_id):
         return None
 
     detection["world"] = world
-    print(f"Red cube world position: {world}")
+    print(f"Red cube world position: {world}, confidence={detection['confidence']:.2f}")
     save_red_detection_debug(rgb, detection)
     return world

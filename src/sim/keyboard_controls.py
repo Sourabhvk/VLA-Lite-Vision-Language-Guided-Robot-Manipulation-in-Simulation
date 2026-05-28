@@ -15,6 +15,7 @@ from src.sim.robot_control import (
     open_gripper,
 )
 from src.sim.scene_registry import get_object_position
+from src.testing.camera_detection_debug import save_camera_detection_debug
 
 #offset to picku cube 
 APPROACH_HEIGHT_OFFSET = 0.25 
@@ -22,6 +23,11 @@ APPROACH_HEIGHT_OFFSET = 0.25
 def key_pressed(keys, key):
     key_code = ord(key)
     return key_code in keys and keys[key_code] & pyb.KEY_WAS_TRIGGERED
+
+
+def shift_down(keys):
+    return pyb.B3G_SHIFT in keys and keys[pyb.B3G_SHIFT] & pyb.KEY_IS_DOWN
+
 
 def handle_keyboard_controls(panda_id):
     keys = pyb.getKeyboardEvents()
@@ -106,7 +112,10 @@ def handle_keyboard_controls(panda_id):
             move_ee_to_position(panda_id, target_position)
 
     if key_pressed(keys, "j"):
-        vision_pick_and_place_red_cube(panda_id)
+        if shift_down(keys):
+            save_camera_detection_debug(panda_id)
+        else:
+            vision_pick_and_place_red_cube(panda_id)
 
     if key_pressed(keys, "a"):
         pick_and_place(
