@@ -5,6 +5,7 @@ import pybullet as pyb
 import pybullet_data
 
 from src.sim.camera_controls import set_camera_view
+from src.sim.debug_controls import create_reset_scene_control, handle_reset_scene_control
 from src.sim.failsafe import has_interference, stop_robot
 from src.sim.keyboard_controls import handle_keyboard_controls
 from src.sim.logging_utils import set_verbose
@@ -22,6 +23,7 @@ from src.sim.scene_objects import (
 )
 from src.sim.scene_registry import set_object_position
 from src.testing.test_sim import run_gripper_test
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -67,8 +69,10 @@ def main():
     cube_positions, tray_position = sample_scene_positions(args.extra_cubes)
     cube_position = cube_positions[0]
     cube_id, cube_position = create_red_cube(cube_position)
-    for extra_cube_position in cube_positions[1:]:
-        create_extra_cube(extra_cube_position)
+    cube_ids = [cube_id]
+    for color_index, extra_cube_position in enumerate(cube_positions[1:]):
+        extra_cube_id, _ = create_extra_cube(extra_cube_position, color_index)
+        cube_ids.append(extra_cube_id)
     set_object_position("red_cube", cube_position)
     tray_id, tray_position = create_blue_tray(tray_position)
     set_object_position("blue_tray", tray_position)
@@ -96,9 +100,12 @@ def main():
     if args.test_gripper:
         run_gripper_test(panda_id)
 
+    reset_scene_control = create_reset_scene_control()
+
     # PyBullet does not run physics unless we step it.
     try:
         while True:
+            handle_reset_scene_control(reset_scene_control, panda_id, cube_ids, tray_id)
             handle_keyboard_controls(panda_id)
             if has_interference(panda_id, cube_id, tray_id, plane_id):
                 print("Failsafe: interference detected, stopping robot")

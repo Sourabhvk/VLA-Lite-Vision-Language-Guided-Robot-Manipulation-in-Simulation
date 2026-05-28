@@ -14,6 +14,14 @@ CUBE_HALF_SIZE = 0.03
 CUBE_LATERAL_FRICTION = 2.0
 CUBE_SPINNING_FRICTION = 0.02
 CUBE_ROLLING_FRICTION = 0.02
+EXTRA_CUBE_COLORS = [
+    [0.56, 0.0, 1.0, 1],  # violet
+    [0.29, 0.0, 0.51, 1],  # indigo
+    [0.0, 0.0, 1.0, 1],  # blue
+    [0.0, 1.0, 0.0, 1],  # green
+    [1.0, 1.0, 0.0, 1],  # yellow
+    [1.0, 0.5, 0.0, 1],  # orange
+]
 
 
 def sample_position(x_range, y_range, z):
@@ -92,9 +100,10 @@ def create_red_cube(position=None):
     return cube_id, position
 
 
-def create_extra_cube(position=None):
+def create_extra_cube(position=None, color_index=0):
     cube_id, position = create_red_cube(position)
-    pyb.changeVisualShape(cube_id, -1, rgbaColor=[random.random(), random.random(), random.random(), 1])
+    color = EXTRA_CUBE_COLORS[color_index % len(EXTRA_CUBE_COLORS)]
+    pyb.changeVisualShape(cube_id, -1, rgbaColor=color)
     return cube_id, position
 
 
