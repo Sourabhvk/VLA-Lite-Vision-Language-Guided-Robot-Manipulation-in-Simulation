@@ -9,8 +9,6 @@ Click inside the PyBullet window before pressing keys.
 | `h` | Move Panda arm back to home pose |
 | `o` | Open gripper |
 | `c` | Close gripper |
-| `p` | Move gripper above the red cube |
-| `l` | Lower gripper toward the red cube |
 | `u` | Lift gripper upward |
 | `b` | Move gripper above the blue tray |
 | `d` | Lower gripper toward the blue tray |
@@ -18,8 +16,15 @@ Click inside the PyBullet window before pressing keys.
 | `y` | Detect red cube in wrist-camera image |
 | `q` | Detect red cube and move above it |
 | `j` | Vision-based red-cube pick-and-place |
-| `a` | Run scripted pick-and-place |
 | `m` | Parse text command and execute it |
+
+## PyBullet panel controls
+
+Use the `Params` panel on the right side of the PyBullet window.
+
+| Control | Action |
+| --- | --- |
+| `randomize scene + home` | Randomize cube/tray positions, open gripper, and move Panda home |
 
 ## Camera controls
 
@@ -31,9 +36,9 @@ Click inside the PyBullet window before pressing keys.
 
 ## Test Flow
 
-- Basic pick-and-place test: press `p`, `l`, `c`, `u`, `b`, `d`, then `o`.
-- Automated pick-and-place test: press `a`.
+- Vision pick-and-place test: press `j`.
 - Command-driven test: press `m`.
 - Wrist camera captures are saved under `outputs/`.
 - The red cube spawns randomly inside a conservative reachable workspace.
-- `p`, `l`, `a`, and `m` use the current scene registry position. Vision will update that registry later.
+- Manual/scripted commands use the current scene registry position.
+- Vision commands use the wrist camera and OpenCV detection result directly.

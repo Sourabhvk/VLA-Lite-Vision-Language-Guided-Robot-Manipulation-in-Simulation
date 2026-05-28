@@ -6,7 +6,7 @@ from src.perception.vision_routines import vision_pick_and_place_red_cube
 from src.sim.camera_controls import set_camera_view
 from src.language.simple_parser import parse_command
 from src.sim.logging_utils import log
-from src.sim.routines import pick_and_place
+from src.sim.routines import APPROACH_HEIGHT_OFFSET, TRAY_DROP_HEIGHT_OFFSET, pick_and_place
 from src.sim.robot_control import (
     close_gripper,
     move_ee_to_position,
@@ -15,9 +15,6 @@ from src.sim.robot_control import (
     open_gripper,
 )
 from src.sim.scene_registry import get_object_position
-
-# Offset used for simple manual moves above objects.
-APPROACH_HEIGHT_OFFSET = 0.25
 
 
 def key_pressed(keys, key):
@@ -52,21 +49,6 @@ def handle_keyboard_controls(panda_id):
         log("Keyboard: top camera")
         set_camera_view("top")
 
-    if key_pressed(keys, "p"):
-        cube_position = get_object_position("red_cube")
-        target_position = [
-            cube_position[0],
-            cube_position[1],
-            cube_position[2] + APPROACH_HEIGHT_OFFSET,
-        ]
-        log(f"Keyboard: move above cube {target_position}")
-        move_ee_to_position(panda_id, target_position)
-
-    if key_pressed(keys, "l"):
-        target_position = get_object_position("red_cube")
-        log(f"Keyboard: lower toward cube {target_position}")
-        move_ee_to_position(panda_id, target_position)
-
     if key_pressed(keys, "u"):
         log("Keyboard: lift gripper")
         move_ee_up(panda_id)
@@ -86,7 +68,7 @@ def handle_keyboard_controls(panda_id):
         target_position = [
             tray_position[0],
             tray_position[1],
-            tray_position[2] + 0.08,
+            tray_position[2] + TRAY_DROP_HEIGHT_OFFSET,
         ]
         log(f"Keyboard: lower toward blue tray {target_position}")
         move_ee_to_position(panda_id, target_position)
@@ -109,13 +91,6 @@ def handle_keyboard_controls(panda_id):
 
     if key_pressed(keys, "j"):
         vision_pick_and_place_red_cube(panda_id)
-
-    if key_pressed(keys, "a"):
-        pick_and_place(
-            panda_id,
-            get_object_position("red_cube"),
-            get_object_position("blue_tray"),
-        )
 
     if key_pressed(keys, "m"):
         task = parse_command("pick red cube and place in blue tray")

@@ -10,7 +10,8 @@ PRE_GRASP_HEIGHT_OFFSET = 0.08
 GRASP_Z_OFFSET = 0.0
 TRAY_DROP_HEIGHT_OFFSET = 0.08
 
-#routine for pick and place, used in keyboard controls and failsafe
+
+# Scripted pick and place, used by keyboard controls and command parsing.
 def pick_and_place(panda_id, source_position, target_position):
     source_above = [
         source_position[0],

@@ -21,6 +21,7 @@ CAMERA_VIEWS = {
     },
 }
 
+
 def set_camera_view(name):
     view = CAMERA_VIEWS[name]
     pyb.resetDebugVisualizerCamera(**view)
