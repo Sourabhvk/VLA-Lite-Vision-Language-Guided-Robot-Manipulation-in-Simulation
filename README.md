@@ -271,9 +271,3 @@ The motion code generates end-effector targets for approach, pre-grasp, grasp, l
 ```
 
 This keeps the language layer aligned with the current manipulation task while leaving room for richer object references later.
-
-## Future Improvements
-
-- Estimate cube orientation from vision so angled grasps can be studied properly.
-- Detect the blue tray visually instead of reading its position from the simulator registry.
-- Add automatic post-run success checks using cube/tray state and camera evidence.
