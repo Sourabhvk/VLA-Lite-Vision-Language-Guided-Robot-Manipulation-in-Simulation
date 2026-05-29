@@ -95,16 +95,15 @@ The failures were position-dependent. They were concentrated in specific workspa
 
 The reliability test uses ground-truth scene positions, so it separates robot/control problems from OpenCV problems. That distinction helped keep fixes targeted.
 
-### Fixes made from testing
+### What changed after the tests
 
-- Improved scene sampling and rejection for initial cube/tray overlap
-- Added timestamped run artifacts and randomized tray placement
-- Tuned physics/gripper parameters and added OpenCV confidence gating
-- Exposed speed tuning and a PyBullet panel for quick scene randomization
+- Scene generation now rejects invalid cube/tray overlap cases before a run starts.
+- The tray is randomized too, so the system is tested against more than one destination.
+- Gripper friction, cube friction, and gripper force were tuned after observing failed lifts.
+- OpenCV detection now uses confidence gating so weak red detections do not trigger motion.
+- Distractor cube colors avoid red-like values, keeping the color detector's job well defined.
 
 ## Code Module Flow
-
-The runtime path is split into lanes so the module flow stays readable on GitHub.
 
 ```mermaid
 flowchart LR
@@ -273,10 +272,8 @@ The motion code generates end-effector targets for approach, pre-grasp, grasp, l
 
 This keeps the language layer aligned with the current manipulation task while leaving room for richer object references later.
 
-<!-- Removed: Current Engineering Edges (moved/condensed into future improvements) -->
+## Future Improvements
 
-## Future Improvements (short list)
-
-- Add cube-orientation estimation to support angled grasps
-- Add visual detection for the tray and close the perception loop
-- Add an automatic success check and more robust run diagnostics
+- Estimate cube orientation from vision so angled grasps can be studied properly.
+- Detect the blue tray visually instead of reading its position from the simulator registry.
+- Add automatic post-run success checks using cube/tray state and camera evidence.
