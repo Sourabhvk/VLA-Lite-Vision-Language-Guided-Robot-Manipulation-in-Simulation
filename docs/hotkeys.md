@@ -17,6 +17,7 @@ Click inside the PyBullet window before pressing keys.
 | `q` | Detect red cube and move above it |
 | `j` | Vision-based red-cube pick-and-place |
 | `m` | Parse text command and execute it |
+| `p` | Prompt for a terminal command and execute it |
 
 ## PyBullet panel controls
 

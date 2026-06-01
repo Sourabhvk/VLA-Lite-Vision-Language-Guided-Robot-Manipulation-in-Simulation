@@ -1,4 +1,5 @@
 import pybullet as pyb
+import time
 
 from src.perception.camera import save_rgb_frame
 from src.perception.object_localizer import localize_red_cube
@@ -15,6 +16,20 @@ from src.sim.robot_control import (
     open_gripper,
 )
 from src.sim.scene_registry import get_object_position
+
+
+def run_text_command(panda_id, command):
+    task = parse_command(command)
+    print(task)
+
+    # Convert structured parser output back to today's scene registry names.
+    source = f"{task['source']['color']}_{task['source']['type']}"
+    target = f"{task['target']['color']}_{task['target']['type']}"
+    pick_and_place(
+        panda_id,
+        get_object_position(source),
+        get_object_position(target),
+    )
 
 
 def key_pressed(keys, key):
@@ -93,10 +108,10 @@ def handle_keyboard_controls(panda_id):
         vision_pick_and_place_red_cube(panda_id)
 
     if key_pressed(keys, "m"):
-        task = parse_command("pick red cube and place in blue tray")
-        print(task)
-        pick_and_place(
-            panda_id,
-            get_object_position(task["source"]),
-            get_object_position(task["target"]),
-        )
+        run_text_command(panda_id, "pick red cube and place in blue tray")
+
+    if key_pressed(keys, "p"):
+        print("Command prompt opening in 1 second...")
+        time.sleep(1.0)
+        command = input("Command > ")
+        run_text_command(panda_id, command)
