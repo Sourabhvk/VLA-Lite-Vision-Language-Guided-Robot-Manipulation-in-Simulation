@@ -41,6 +41,12 @@ def spawn_cubes(cube_names):
     return cube_ids, tray_position
 
 
+def disable_pybullet_profiling():
+    # We do not use PyBullet's internal timing dumps; they are noisy and can stall.
+    if hasattr(pyb, "COV_ENABLE_PROFILE_TIMINGS"):
+        pyb.configureDebugVisualizer(pyb.COV_ENABLE_PROFILE_TIMINGS, 0)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -64,6 +70,7 @@ def main():
 
     # Use GUI for now so we can actually see what the robot is doing.
     pyb.connect(pyb.GUI)
+    disable_pybullet_profiling()
 
     # Start the debug camera at a useful angle for this tabletop scene.
     set_camera_view("front")

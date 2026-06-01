@@ -1,19 +1,29 @@
 from src.perception.camera import capture_rgbd
-from src.perception.color_detector import detect_colored_cube, save_color_detection_debug
+from src.perception.color_detector import detect_colored_cube, detect_hsv_cube, save_color_detection_debug
 from src.perception.depth_cluster import mask_to_world_cluster
 
 
 def localize_red_cube(panda_id):
-    return localize_colored_cube(panda_id, "red")
+    return localize_colored_cube(panda_id, "red", save_debug=True)
 
 
-def localize_colored_cube(panda_id, color):
+def localize_colored_cube(panda_id, color, save_debug=False):
     rgb, depth, view_matrix, projection_matrix = capture_rgbd(panda_id)
     detection, mask = detect_colored_cube(rgb, color)
+    return detection_to_world(rgb, depth, view_matrix, projection_matrix, detection, mask, color, save_debug)
 
+
+def localize_hsv_cube(panda_id, hsv_ranges, label="requested", save_debug=False):
+    rgb, depth, view_matrix, projection_matrix = capture_rgbd(panda_id)
+    detection, mask = detect_hsv_cube(rgb, hsv_ranges, label)
+    return detection_to_world(rgb, depth, view_matrix, projection_matrix, detection, mask, label, save_debug)
+
+
+def detection_to_world(rgb, depth, view_matrix, projection_matrix, detection, mask, label, save_debug):
     if detection is None:
-        print(f"{color.title()} cube not detected with enough confidence")
-        save_color_detection_debug(rgb, detection, color)
+        print(f"No matching {label} cube found")
+        if save_debug:
+            save_color_detection_debug(rgb, detection, label)
         return None
 
     world = mask_to_world_cluster(
@@ -24,11 +34,13 @@ def localize_colored_cube(panda_id, color):
         rgb.shape,
     )
     if world is None:
-        print(f"{color.title()} cube depth cluster failed")
-        save_color_detection_debug(rgb, detection, color)
+        print(f"{label.title()} cube depth cluster failed")
+        if save_debug:
+            save_color_detection_debug(rgb, detection, label)
         return None
 
     detection["world"] = world
-    print(f"{color.title()} cube world position: {world}, confidence={detection['confidence']:.2f}")
-    save_color_detection_debug(rgb, detection, color)
+    print(f"{label.title()} cube world position: {world}, confidence={detection['confidence']:.2f}")
+    if save_debug:
+        save_color_detection_debug(rgb, detection, label)
     return world

@@ -1,5 +1,4 @@
 SUPPORTED_ACTIONS = {"pick", "pick_place", "place"}
-SUPPORTED_COLORS = {"violet", "blue", "green", "yellow", "orange", "red"}
 SUPPORTED_QUANTITIES = {"one", "all"}
 
 
@@ -22,10 +21,9 @@ def validate_task(task):
 def validate_source(source):
     if source.get("type") != "cube":
         raise ValueError("Source must be a cube")
-    if source.get("color") not in SUPPORTED_COLORS:
-        raise ValueError(f"Unsupported cube color: {source.get('color')}")
     if source.get("quantity") not in SUPPORTED_QUANTITIES:
         raise ValueError("Quantity must be one or all")
+    validate_hsv_ranges(source.get("hsv_ranges"))
 
 
 def validate_target(target):
@@ -33,3 +31,24 @@ def validate_target(target):
         raise ValueError("Target must be a tray")
     if target.get("color") != "blue":
         raise ValueError("Only the blue tray exists right now")
+
+
+def validate_hsv_ranges(ranges):
+    if not isinstance(ranges, list) or not ranges:
+        raise ValueError("Source must include hsv_ranges")
+
+    for hsv_range in ranges:
+        lower = hsv_range.get("lower") if isinstance(hsv_range, dict) else None
+        upper = hsv_range.get("upper") if isinstance(hsv_range, dict) else None
+        if not valid_hsv_triplet(lower) or not valid_hsv_triplet(upper):
+            raise ValueError(f"Invalid HSV range: {hsv_range}")
+
+
+def valid_hsv_triplet(value):
+    return (
+        isinstance(value, list)
+        and len(value) == 3
+        and 0 <= value[0] <= 180
+        and 0 <= value[1] <= 255
+        and 0 <= value[2] <= 255
+    )

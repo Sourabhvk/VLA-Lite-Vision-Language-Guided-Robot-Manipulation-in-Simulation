@@ -2,7 +2,7 @@ import json
 import os
 from urllib import request
 
-from src.language.command_schema import SUPPORTED_COLORS, validate_task
+from src.language.command_schema import validate_task
 
 
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
@@ -57,19 +57,32 @@ def model_is_loaded():
 
 
 def build_prompt(command):
-    colors = ", ".join(sorted(SUPPORTED_COLORS))
     return f"""
 Convert the robot command to JSON only.
 
 Allowed JSON shapes:
 {{
   "action": "pick",
-  "source": {{"type": "cube", "color": "<color>", "quantity": "one|all"}}
+  "source": {{
+    "type": "cube",
+    "color_text": "<user color words>",
+    "quantity": "one|all",
+    "hsv_ranges": [
+      {{"lower": [H, S, V], "upper": [H, S, V]}}
+    ]
+  }}
 }}
 
 {{
   "action": "pick_place",
-  "source": {{"type": "cube", "color": "<color>", "quantity": "one|all"}},
+  "source": {{
+    "type": "cube",
+    "color_text": "<user color words>",
+    "quantity": "one|all",
+    "hsv_ranges": [
+      {{"lower": [H, S, V], "upper": [H, S, V]}}
+    ]
+  }},
   "target": {{"type": "tray", "color": "blue"}}
 }}
 
@@ -82,7 +95,10 @@ Rules:
 - Use action "pick" when the user only asks to pick up or grab a cube.
 - Use action "place" when the user only asks to place/drop the held object.
 - Use action "pick_place" when the user asks to pick and place in one command.
-- Supported cube colors: {colors}
+- For pick actions, infer an OpenCV HSV range for the user's color words.
+- HSV uses OpenCV ranges: H 0-180, S 0-255, V 0-255.
+- Red may need two hue ranges around 0 and 180.
+- Use saturated/bright ranges for cube colors in a PyBullet scene.
 - Use quantity "all" only when the user clearly asks for all/multiple cubes.
 - Otherwise use quantity "one".
 - The only target is the blue tray.

@@ -22,6 +22,16 @@ COLOR_RANGES = {
 def detect_colored_cube(rgb, color):
     hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
     mask = color_mask(hsv, color)
+    return detect_cube_from_mask(rgb, hsv, mask, color)
+
+
+def detect_hsv_cube(rgb, hsv_ranges, label="custom"):
+    hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
+    mask = hsv_range_mask(hsv, hsv_ranges)
+    return detect_cube_from_mask(rgb, hsv, mask, label)
+
+
+def detect_cube_from_mask(rgb, hsv, mask, label):
     mask = cv2.medianBlur(mask, 5)
 
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -32,7 +42,7 @@ def detect_colored_cube(rgb, color):
     if detection is None or detection["confidence"] < MIN_COLOR_CONFIDENCE:
         return None, mask
 
-    detection["color"] = color
+    detection["color"] = label
     return detection, mask
 
 
@@ -43,6 +53,15 @@ def color_mask(hsv, color):
     mask = np.zeros(hsv.shape[:2], dtype=np.uint8)
     for lower, upper in COLOR_RANGES[color]:
         mask |= cv2.inRange(hsv, np.array(lower), np.array(upper))
+    return mask
+
+
+def hsv_range_mask(hsv, hsv_ranges):
+    mask = np.zeros(hsv.shape[:2], dtype=np.uint8)
+    for hsv_range in hsv_ranges:
+        lower = np.array(hsv_range["lower"])
+        upper = np.array(hsv_range["upper"])
+        mask |= cv2.inRange(hsv, lower, upper)
     return mask
 
 
