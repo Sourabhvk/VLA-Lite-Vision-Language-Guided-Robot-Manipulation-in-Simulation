@@ -237,12 +237,15 @@ Shown below are the most commonly used controls; the full list is in [`docs/hotk
 
 | Key / Control | Action |
 | --- | --- |
-| `j` | Run the vision-based pick-and-place sequence |
-| `q` | Detect the red cube and move above it (quick inspect) |
+| `p` | Type a prompt, parse it with Ollama, and execute it |
+| `m` | Run the built-in demo prompt through Ollama |
+| `j` | Run the red-cube vision pick-and-place demo |
+| `q` | Detect the red cube and move above it |
+| `r` | Randomize scene, open gripper, and send robot home |
 | `h` | Return Panda to a safe home pose |
-| `y` | Save the current OpenCV detection image |
+| `y` | Save the current red-cube detection image |
 
-Other interactive controls (scene randomization, panel toggles) are available in the PyBullet GUI and documented in `docs/hotkeys.md`.
+Other interactive controls are documented in `docs/hotkeys.md`.
 
 ## Implementation Notes
 

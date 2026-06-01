@@ -5,18 +5,7 @@ from src.sim.scene_objects import sample_scene_positions
 from src.sim.scene_registry import set_object_position
 
 
-def create_reset_scene_control():
-    # PyBullet gives us sliders, so this slider acts like a simple reset button.
-    control_id = pyb.addUserDebugParameter("randomize scene + home", 0, 1, 0)
-    return {"id": control_id, "last_value": 0}
-
-
-def handle_reset_scene_control(control, panda_id, cube_ids, cube_names, tray_id):
-    value = pyb.readUserDebugParameter(control["id"])
-    if value == control["last_value"]:
-        return
-
-    control["last_value"] = value
+def reset_scene_and_home(panda_id, cube_ids, cube_names, tray_id):
     cube_positions, tray_position = sample_scene_positions(len(cube_ids) - 1)
 
     for cube_id, cube_name, cube_position in zip(cube_ids, cube_names, cube_positions):

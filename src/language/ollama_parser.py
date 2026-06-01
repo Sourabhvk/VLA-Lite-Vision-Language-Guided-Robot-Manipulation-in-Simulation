@@ -5,7 +5,9 @@ from urllib import request
 from src.language.command_schema import SUPPORTED_COLORS, validate_task
 
 
-OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_URL = os.getenv("OLLAMA_URL", f"{OLLAMA_HOST}/api/generate")
+OLLAMA_PS_URL = os.getenv("OLLAMA_PS_URL", f"{OLLAMA_HOST}/api/ps")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
 
 
@@ -16,6 +18,9 @@ def parse_command_with_ollama(command):
 
 
 def ask_ollama(command):
+    print_ollama_status()
+    print("Ollama: parsing command...")
+
     payload = {
         "model": OLLAMA_MODEL,
         "prompt": build_prompt(command),
@@ -27,7 +32,28 @@ def ask_ollama(command):
 
     with request.urlopen(http_request, timeout=45) as response:
         data = json.loads(response.read().decode("utf-8"))
+        print("Ollama: response received")
         return data["response"]
+
+
+def print_ollama_status():
+    loaded = model_is_loaded()
+    if loaded is True:
+        print(f"Ollama: {OLLAMA_MODEL} is already loaded")
+    elif loaded is False:
+        print(f"Ollama: loading {OLLAMA_MODEL}; first response may be slow")
+    else:
+        print("Ollama: status unknown; sending request")
+
+
+def model_is_loaded():
+    try:
+        with request.urlopen(OLLAMA_PS_URL, timeout=2) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except Exception:
+        return None
+
+    return any(model.get("name") == OLLAMA_MODEL or model.get("model") == OLLAMA_MODEL for model in data.get("models", []))
 
 
 def build_prompt(command):
@@ -35,14 +61,27 @@ def build_prompt(command):
     return f"""
 Convert the robot command to JSON only.
 
-Schema:
+Allowed JSON shapes:
+{{
+  "action": "pick",
+  "source": {{"type": "cube", "color": "<color>", "quantity": "one|all"}}
+}}
+
 {{
   "action": "pick_place",
   "source": {{"type": "cube", "color": "<color>", "quantity": "one|all"}},
   "target": {{"type": "tray", "color": "blue"}}
 }}
 
+{{
+  "action": "place",
+  "target": {{"type": "tray", "color": "blue"}}
+}}
+
 Rules:
+- Use action "pick" when the user only asks to pick up or grab a cube.
+- Use action "place" when the user only asks to place/drop the held object.
+- Use action "pick_place" when the user asks to pick and place in one command.
 - Supported cube colors: {colors}
 - Use quantity "all" only when the user clearly asks for all/multiple cubes.
 - Otherwise use quantity "one".

@@ -14,9 +14,14 @@ def vision_pick_and_place_red_cube(panda_id):
 
 
 def vision_pick_and_place_colored_cube(panda_id, color):
+    if vision_pick_colored_cube(panda_id, color):
+        vision_place_in_blue_tray(panda_id)
+
+
+def vision_pick_colored_cube(panda_id, color):
     cube_position = localize_colored_cube(panda_id, color)
     if cube_position is None:
-        return
+        return False
 
     # First move above the rough detection, then re-detect from a closer view.
     move_ee_to_position(panda_id, above(cube_position, APPROACH_HEIGHT_OFFSET))
@@ -38,6 +43,10 @@ def vision_pick_and_place_colored_cube(panda_id, color):
     move_ee_to_position(panda_id, above(cube_position, APPROACH_HEIGHT_OFFSET))
     step_simulation(seconds=1.2)
 
+    return True
+
+
+def vision_place_in_blue_tray(panda_id):
     tray_position = get_object_position("blue_tray")
     move_ee_to_position(panda_id, above(tray_position, APPROACH_HEIGHT_OFFSET))
     step_simulation(seconds=1.5)

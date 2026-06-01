@@ -5,7 +5,6 @@ import pybullet as pyb
 import pybullet_data
 
 from src.sim.camera_controls import set_camera_view
-from src.sim.debug_controls import create_reset_scene_control, handle_reset_scene_control
 from src.sim.failsafe import has_interference, stop_robot
 from src.sim.keyboard_controls import handle_keyboard_controls
 from src.sim.logging_utils import set_verbose
@@ -112,13 +111,10 @@ def main():
     if args.test_gripper:
         run_gripper_test(panda_id)
 
-    reset_scene_control = create_reset_scene_control()
-
     # PyBullet does not run physics unless we step it.
     try:
         while True:
-            handle_reset_scene_control(reset_scene_control, panda_id, cube_ids, cube_names, tray_id)
-            handle_keyboard_controls(panda_id)
+            handle_keyboard_controls(panda_id, cube_ids, cube_names, tray_id)
             if has_interference(panda_id, cube_id, tray_id, plane_id):
                 print("Failsafe: interference detected, stopping robot")
                 stop_robot(panda_id)

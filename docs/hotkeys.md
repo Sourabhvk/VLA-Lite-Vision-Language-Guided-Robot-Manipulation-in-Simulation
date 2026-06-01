@@ -10,22 +10,15 @@ Click inside the PyBullet window before pressing keys.
 | `o` | Open gripper |
 | `c` | Close gripper |
 | `u` | Lift gripper upward |
+| `r` | Randomize scene, open gripper, and send robot home |
 | `b` | Move gripper above the blue tray |
 | `d` | Lower gripper toward the blue tray |
 | `i` | Capture and save wrist-camera RGB image |
-| `y` | Detect red cube in wrist-camera image |
-| `q` | Detect red cube and move above it |
-| `j` | Vision-based red-cube pick-and-place |
-| `m` | Run the demo command through Ollama and execute it |
+| `y` | Detect the red cube in wrist-camera image |
+| `q` | Detect the red cube and move above it |
+| `j` | Vision-based red-cube pick-and-place demo |
+| `m` | Run the demo prompt through Ollama |
 | `p` | Prompt for a terminal command, parse with Ollama, and execute it |
-
-## PyBullet panel controls
-
-Use the `Params` panel on the right side of the PyBullet window.
-
-| Control | Action |
-| --- | --- |
-| `randomize scene + home` | Randomize cube/tray positions, open gripper, and move Panda home |
 
 ## Camera controls
 
