@@ -5,9 +5,10 @@ from src.perception.camera import save_rgb_frame
 from src.perception.object_localizer import localize_red_cube
 from src.perception.vision_routines import vision_pick_and_place_red_cube
 from src.sim.camera_controls import set_camera_view
-from src.language.simple_parser import parse_command
+from src.language.ollama_parser import parse_command_with_ollama
+from src.sim.command_executor import execute_task
 from src.sim.logging_utils import log
-from src.sim.routines import APPROACH_HEIGHT_OFFSET, TRAY_DROP_HEIGHT_OFFSET, pick_and_place
+from src.sim.routines import APPROACH_HEIGHT_OFFSET, TRAY_DROP_HEIGHT_OFFSET
 from src.sim.robot_control import (
     close_gripper,
     move_ee_to_position,
@@ -19,17 +20,12 @@ from src.sim.scene_registry import get_object_position
 
 
 def run_text_command(panda_id, command):
-    task = parse_command(command)
-    print(task)
-
-    # Bridge structured commands to the current scene registry names.
-    source = f"{task['source']['color']}_{task['source']['type']}"
-    target = f"{task['target']['color']}_{task['target']['type']}"
-    pick_and_place(
-        panda_id,
-        get_object_position(source),
-        get_object_position(target),
-    )
+    try:
+        task = parse_command_with_ollama(command)
+        print(task)
+        execute_task(panda_id, task)
+    except Exception as error:
+        print(f"Command failed: {error}")
 
 
 def key_pressed(keys, key):

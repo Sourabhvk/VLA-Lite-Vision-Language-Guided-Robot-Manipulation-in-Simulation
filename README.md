@@ -1,11 +1,11 @@
 # VLA-Lite: Vision-Language-Guided Robot Manipulation in Simulation
 
-VLA-Lite is a Python-first robotics simulation project where a Franka Panda arm uses a wrist camera, OpenCV perception, depth-based localization, and IK control to pick a red cube and place it into a blue tray.
+VLA-Lite is a Python-first robotics simulation project where a Franka Panda arm uses a wrist camera, OpenCV perception, depth-based localization, Ollama command parsing, and IK control to pick a requested colored cube and place it into a blue tray.
 
 The guiding command is:
 
 ```text
-pick red cube and place in blue tray
+pick green cube and place in blue tray
 ```
 
 The project is built as an end-to-end learning system: every major robotics step is visible in code, from scene setup to perception output to robot motion.
@@ -21,7 +21,7 @@ The project is built as an end-to-end learning system: every major robotics step
 The project connects four parts of the manipulation stack:
 
 1. language intent: understand the target object and destination,
-2. vision: detect the red cube from the robot's camera,
+2. vision: detect the requested colored cube from the robot's camera,
 3. geometry: convert image/depth data into a 3D target,
 4. control: move the Panda gripper through a pick-and-place sequence.
 
@@ -33,7 +33,7 @@ The task is narrow by design: it gives a clear pass/fail loop while the implemen
 - Practical PyBullet-based robot control with an `ik_solver` wrapper and waypoint motion
 - Reproducible reliability testing harness with CSV logs and failure heatmaps
 - Config-driven speed and physics tuning for easier local experimentation
-- Small rule-based language parser that maps short commands to object actions
+- Ollama-backed command parser with schema validation before robot execution
 
 ## Implemented features (concrete)
 
@@ -41,6 +41,7 @@ The task is narrow by design: it gives a clear pass/fail loop while the implemen
 - Depth projection and clustering for world-point estimation: `src/perception/depth_cluster.py` and `src/perception/object_localizer.py`
 - Vision-driven routines and robot interface: `src/perception/vision_routines.py`, `src/sim/robot_control.py`, and `src/sim/ik_solver.py`
 - Simulation entry, interactive controls, and panel toggles: `src/sim/panda_env.py`, `src/sim/keyboard_controls.py`, and `src/sim/debug_controls.py`
+- Ollama command parsing and validation: `src/language/ollama_parser.py`, `src/language/command_schema.py`, and `src/sim/command_executor.py`
 - Config-driven speed and physics tuning: `config/robot_speeds.template.txt` (copy to `config/robot_speeds.txt`)
 - Reproducible reliability testing and run artifacts: `testing/test_pick_place_100.py` and the `outputs/testing/` folder
 - Logging and developer utilities: `src/sim/logging_utils.py` and small test helpers in `src/testing/`
@@ -55,7 +56,7 @@ The task is narrow by design: it gives a clear pass/fail loop while the implemen
 | Vision | OpenCV | Color thresholding, contour detection, bbox debug output |
 | Geometry | NumPy | Depth projection, point clustering, matrix math |
 | Testing | Matplotlib + CSV logs | Reliability plots, failure heatmaps, run artifacts |
-| Language | Small rule parser | Maps the task command to `red_cube -> blue_tray` |
+| Language | Ollama + JSON validation | Maps typed prompts to safe structured robot commands |
 
 Core dependencies:
 
@@ -107,15 +108,17 @@ The reliability test uses ground-truth scene positions, so it separates robot/co
 
 ```mermaid
 flowchart LR
-    A["Command"] --> B["simple_parser.py"]
-    B --> C["vision_routines.py"]
-    C --> D["camera.py"]
-    D --> E["color_detector.py"]
-    E --> F["depth_cluster.py"]
-    F --> G["object_localizer.py"]
-    G --> H["robot_control.py"]
-    H --> I["ik_solver.py"]
-    I --> J["panda_env.py"]
+    A["Command"] --> B["ollama_parser.py"]
+    B --> C["command_schema.py"]
+    C --> D["command_executor.py"]
+    D --> E["vision_routines.py"]
+    E --> F["camera.py"]
+    F --> G["color_detector.py"]
+    G --> H["depth_cluster.py"]
+    H --> I["object_localizer.py"]
+    I --> J["robot_control.py"]
+    J --> K["ik_solver.py"]
+    K --> L["panda_env.py"]
 ```
 
 ## Architecture
@@ -141,9 +144,11 @@ flowchart LR
     end
 
     subgraph Task["Task Layer"]
-        L1["simple_parser.py"]
-        R1["vision_routines.py"]
-        R2["routines.py"]
+        L1["ollama_parser.py"]
+        L2["command_schema.py"]
+        R1["command_executor.py"]
+        R2["vision_routines.py"]
+        R3["routines.py"]
     end
 
     subgraph Control["Robot Control"]
@@ -165,7 +170,9 @@ flowchart LR
     P2 --> P3
     P3 --> P4
     P4 --> R1
-    L1 --> R2
+    L1 --> L2
+    L2 --> R1
+    R1 --> R2
     R1 --> C1
     R2 --> C1
     C1 --> C2
@@ -243,18 +250,18 @@ Other interactive controls (scene randomization, panel toggles) are available in
 
 `src/sim/panda_env.py` creates the PyBullet GUI, loads the plane and Franka Panda, spawns the cube/tray objects, initializes the gripper, and runs the simulation loop.
 
-The red cube and blue tray are sampled together so invalid initial overlaps can be rejected. Extra cubes can be spawned as distractors, but their colors deliberately avoid red-like values so the OpenCV target remains unambiguous.
+The scene always includes violet, blue, green, yellow, orange, and red cubes. `--extra-cubes` adds random visual distractors, and the sampler rejects cube/tray and cube/cube overlaps.
 
 ### Wrist-camera perception
 
 The camera is mounted relative to the Panda end effector. Each perception pass captures RGB, depth, view matrix, and projection matrix from PyBullet.
 
-The OpenCV detector thresholds for saturated red, extracts the strongest contour, computes a confidence score, and saves a bbox debug image. The depth step samples red-mask pixels, projects them into world coordinates, and uses the median point as the cube estimate.
+The OpenCV detector thresholds by requested color, extracts the strongest cube-shaped contour, computes a confidence score, and saves a bbox debug image. The depth step samples color-mask pixels, projects them into world coordinates, and uses the median point as the cube estimate.
 
 That gives the robot a practical target:
 
 ```text
-red pixels in image -> depth values -> world-space cube position
+color pixels in image -> depth values -> world-space cube position
 ```
 
 ### Robot control
@@ -263,11 +270,10 @@ The motion code generates end-effector targets for approach, pre-grasp, grasp, l
 
 ### Language path
 
-`simple_parser.py` currently maps the supported command into object names:
+Typed prompts go through Ollama, then schema validation, then robot execution:
 
-```python
-"pick red cube and place in blue tray"
--> {"source": "red_cube", "target": "blue_tray"}
+```text
+prompt -> ollama_parser.py -> command_schema.py -> command_executor.py
 ```
 
-This keeps the language layer aligned with the current manipulation task while leaving room for richer object references later.
+Ollama is only allowed to produce structured JSON. `command_schema.py` validates that JSON before any robot routine runs.

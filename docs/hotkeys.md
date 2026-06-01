@@ -16,8 +16,8 @@ Click inside the PyBullet window before pressing keys.
 | `y` | Detect red cube in wrist-camera image |
 | `q` | Detect red cube and move above it |
 | `j` | Vision-based red-cube pick-and-place |
-| `m` | Parse text command and execute it |
-| `p` | Prompt for a terminal command and execute it |
+| `m` | Run the demo command through Ollama and execute it |
+| `p` | Prompt for a terminal command, parse with Ollama, and execute it |
 
 ## PyBullet panel controls
 
@@ -38,8 +38,8 @@ Use the `Params` panel on the right side of the PyBullet window.
 ## Test Flow
 
 - Vision pick-and-place test: press `j`.
-- Command-driven test: press `m`.
+- Command-driven test: press `p` and type a prompt.
 - Wrist camera captures are saved under `outputs/`.
-- The red cube spawns randomly inside a conservative reachable workspace.
-- Manual/scripted commands use the current scene registry position.
+- Fixed color cubes spawn inside a conservative reachable workspace.
+- Prompt commands are parsed by Ollama, validated, then executed through vision.
 - Vision commands use the wrist camera and OpenCV detection result directly.
