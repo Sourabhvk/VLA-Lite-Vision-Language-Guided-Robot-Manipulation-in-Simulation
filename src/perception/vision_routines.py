@@ -1,4 +1,4 @@
-from src.perception.object_localizer import localize_red_cube
+from src.perception.object_localizer import localize_colored_cube
 from src.sim.robot_control import close_gripper, move_ee_to_position, open_gripper, step_simulation
 from src.sim.routines import (
     APPROACH_HEIGHT_OFFSET,
@@ -10,7 +10,11 @@ from src.sim.scene_registry import get_object_position
 
 
 def vision_pick_and_place_red_cube(panda_id):
-    cube_position = localize_red_cube(panda_id)
+    vision_pick_and_place_colored_cube(panda_id, "red")
+
+
+def vision_pick_and_place_colored_cube(panda_id, color):
+    cube_position = localize_colored_cube(panda_id, color)
     if cube_position is None:
         return
 
@@ -18,7 +22,7 @@ def vision_pick_and_place_red_cube(panda_id):
     move_ee_to_position(panda_id, above(cube_position, APPROACH_HEIGHT_OFFSET))
     step_simulation(seconds=1.2)
 
-    refined_cube_position = localize_red_cube(panda_id)
+    refined_cube_position = localize_colored_cube(panda_id, color)
     if refined_cube_position is not None:
         cube_position = refined_cube_position
 

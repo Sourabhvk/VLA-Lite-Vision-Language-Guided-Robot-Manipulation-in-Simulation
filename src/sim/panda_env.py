@@ -16,13 +16,30 @@ from src.sim.robot_control import (
     step_simulation,
 )
 from src.sim.scene_objects import (
+    DEFAULT_CUBE_NAMES,
     create_blue_tray,
-    create_extra_cube,
-    create_red_cube,
+    create_colored_cube,
     sample_scene_positions,
 )
 from src.sim.scene_registry import set_object_position
 from src.testing.test_sim import run_gripper_test
+
+
+def build_cube_names(extra_cube_count):
+    random_names = [f"random_{index + 1}" for index in range(extra_cube_count)]
+    return DEFAULT_CUBE_NAMES + random_names
+
+
+def spawn_cubes(cube_names):
+    cube_positions, tray_position = sample_scene_positions(len(cube_names) - 1)
+    cube_ids = []
+
+    for cube_name, cube_position in zip(cube_names, cube_positions):
+        cube_id, cube_position = create_colored_cube(cube_name, cube_position)
+        cube_ids.append(cube_id)
+        set_object_position(f"{cube_name}_cube", cube_position)
+
+    return cube_ids, tray_position
 
 
 def main():
@@ -40,8 +57,8 @@ def main():
     parser.add_argument(
         "--extra-cubes",
         type=int,
-        default=0,
-        help="Spawn extra distractor cubes in addition to the red cube.",
+        default=1,
+        help="Spawn this many random distractor cubes in addition to the fixed color cubes.",
     )
     args = parser.parse_args()
     set_verbose(args.verbose)
@@ -65,15 +82,10 @@ def main():
         useFixedBase=True,
     )
 
-    # Sample both together so randomized starts are valid.
-    cube_positions, tray_position = sample_scene_positions(args.extra_cubes)
-    cube_position = cube_positions[0]
-    cube_id, cube_position = create_red_cube(cube_position)
-    cube_ids = [cube_id]
-    for color_index, extra_cube_position in enumerate(cube_positions[1:]):
-        extra_cube_id, _ = create_extra_cube(extra_cube_position, color_index)
-        cube_ids.append(extra_cube_id)
-    set_object_position("red_cube", cube_position)
+    # Promptable colors spawn first; extras are random visual distractors.
+    cube_names = build_cube_names(args.extra_cubes)
+    cube_ids, tray_position = spawn_cubes(cube_names)
+    cube_id = cube_ids[cube_names.index("red")]
     tray_id, tray_position = create_blue_tray(tray_position)
     set_object_position("blue_tray", tray_position)
     configure_gripper_friction(panda_id)
@@ -105,7 +117,7 @@ def main():
     # PyBullet does not run physics unless we step it.
     try:
         while True:
-            handle_reset_scene_control(reset_scene_control, panda_id, cube_ids, tray_id)
+            handle_reset_scene_control(reset_scene_control, panda_id, cube_ids, cube_names, tray_id)
             handle_keyboard_controls(panda_id)
             if has_interference(panda_id, cube_id, tray_id, plane_id):
                 print("Failsafe: interference detected, stopping robot")

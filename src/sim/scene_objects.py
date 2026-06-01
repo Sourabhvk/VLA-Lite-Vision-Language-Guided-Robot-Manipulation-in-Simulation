@@ -3,7 +3,7 @@ import random
 import pybullet as pyb
 
 
-RED_CUBE_POSITION = (0.5, 0, 0.03)
+CUBE_Z = 0.03
 BLUE_TRAY_POSITION = (0.35, -0.35, 0.01)
 CUBE_X_RANGE = (0.35, 0.68)
 CUBE_Y_RANGE = (-0.28, 0.28)
@@ -14,13 +14,19 @@ CUBE_HALF_SIZE = 0.03
 CUBE_LATERAL_FRICTION = 2.0
 CUBE_SPINNING_FRICTION = 0.02
 CUBE_ROLLING_FRICTION = 0.02
-EXTRA_CUBE_COLORS = [
-    [0.56, 0.0, 1.0, 1],  # violet
-    [0.29, 0.0, 0.51, 1],  # indigo
-    [0.0, 0.0, 1.0, 1],  # blue
-    [0.0, 1.0, 0.0, 1],  # green
-    [1.0, 1.0, 0.0, 1],  # yellow
-    [1.0, 0.5, 0.0, 1],  # orange
+CUBE_COLORS = {
+    "violet": [0.56, 0.0, 1.0, 1],
+    "blue": [0.0, 0.0, 1.0, 1],
+    "green": [0.0, 1.0, 0.0, 1],
+    "yellow": [1.0, 1.0, 0.0, 1],
+    "orange": [1.0, 0.5, 0.0, 1],
+    "red": [1.0, 0.0, 0.0, 1],
+}
+DEFAULT_CUBE_NAMES = list(CUBE_COLORS)
+RANDOM_CUBE_COLORS = [
+    [1.0, 0.0, 1.0, 1],  # pink
+    [0.0, 1.0, 1.0, 1],  # cyan
+    [0.5, 0.5, 0.5, 1],  # gray
 ]
 
 
@@ -32,8 +38,8 @@ def sample_position(x_range, y_range, z):
     )
 
 
-def sample_red_cube_position():
-    return sample_position(CUBE_X_RANGE, CUBE_Y_RANGE, RED_CUBE_POSITION[2])
+def sample_cube_position():
+    return sample_position(CUBE_X_RANGE, CUBE_Y_RANGE, CUBE_Z)
 
 
 def sample_blue_tray_position():
@@ -49,29 +55,41 @@ def footprints_overlap(position_a, half_extents_a, position_b, half_extents_b):
 
 
 def sample_scene_positions(extra_cube_count=0):
-    # Reject invalid randomized scenes where the cube starts inside the tray.
+    # Place cubes one by one so larger distractor counts still sample reliably.
+    cube_extents = [CUBE_HALF_SIZE, CUBE_HALF_SIZE]
+
     for _ in range(100):
-        cube_positions = [sample_red_cube_position() for _ in range(extra_cube_count + 1)]
         tray_position = sample_blue_tray_position()
-        if all(
-            not footprints_overlap(
-                cube_position,
-                [CUBE_HALF_SIZE, CUBE_HALF_SIZE],
-                tray_position,
-                TRAY_HALF_EXTENTS,
-            )
-            for cube_position in cube_positions
-        ):
+        cube_positions = []
+
+        for _ in range(extra_cube_count + 1):
+            for _ in range(100):
+                cube_position = sample_cube_position()
+                overlaps_tray = footprints_overlap(cube_position, cube_extents, tray_position, TRAY_HALF_EXTENTS)
+                overlaps_cube = any(
+                    footprints_overlap(cube_position, cube_extents, other, cube_extents)
+                    for other in cube_positions
+                )
+                if not overlaps_tray and not overlaps_cube:
+                    cube_positions.append(cube_position)
+                    break
+
+        if len(cube_positions) == extra_cube_count + 1:
             return cube_positions, tray_position
 
     raise RuntimeError("Could not sample non-overlapping cube/tray positions")
 
 
 def create_red_cube(position=None):
-    # Keep the cube small enough for the Panda gripper.
-    if position is None:
-        position = sample_red_cube_position()
+    return create_colored_cube("red", position)
 
+
+def create_colored_cube(color_name, position=None):
+    # Keep cubes small enough for the Panda gripper.
+    if position is None:
+        position = sample_cube_position()
+
+    color = CUBE_COLORS.get(color_name, random.choice(RANDOM_CUBE_COLORS))
     cube_collision_id = pyb.createCollisionShape(
         shapeType=pyb.GEOM_BOX,
         halfExtents=[CUBE_HALF_SIZE, CUBE_HALF_SIZE, CUBE_HALF_SIZE],
@@ -79,7 +97,7 @@ def create_red_cube(position=None):
     cube_visual_id = pyb.createVisualShape(
         shapeType=pyb.GEOM_BOX,
         halfExtents=[CUBE_HALF_SIZE, CUBE_HALF_SIZE, CUBE_HALF_SIZE],
-        rgbaColor=[1, 0, 0, 1],
+        rgbaColor=color,
     )
 
     cube_id = pyb.createMultiBody(
@@ -97,13 +115,6 @@ def create_red_cube(position=None):
         rollingFriction=CUBE_ROLLING_FRICTION,
     )
 
-    return cube_id, position
-
-
-def create_extra_cube(position=None, color_index=0):
-    cube_id, position = create_red_cube(position)
-    color = EXTRA_CUBE_COLORS[color_index % len(EXTRA_CUBE_COLORS)]
-    pyb.changeVisualShape(cube_id, -1, rgbaColor=color)
     return cube_id, position
 
 

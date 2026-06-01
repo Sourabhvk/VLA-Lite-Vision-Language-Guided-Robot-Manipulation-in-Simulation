@@ -11,7 +11,7 @@ def create_reset_scene_control():
     return {"id": control_id, "last_value": 0}
 
 
-def handle_reset_scene_control(control, panda_id, cube_ids, tray_id):
+def handle_reset_scene_control(control, panda_id, cube_ids, cube_names, tray_id):
     value = pyb.readUserDebugParameter(control["id"])
     if value == control["last_value"]:
         return
@@ -19,12 +19,12 @@ def handle_reset_scene_control(control, panda_id, cube_ids, tray_id):
     control["last_value"] = value
     cube_positions, tray_position = sample_scene_positions(len(cube_ids) - 1)
 
-    for cube_id, cube_position in zip(cube_ids, cube_positions):
+    for cube_id, cube_name, cube_position in zip(cube_ids, cube_names, cube_positions):
         pyb.resetBasePositionAndOrientation(cube_id, cube_position, [0, 0, 0, 1])
         pyb.resetBaseVelocity(cube_id, [0, 0, 0], [0, 0, 0])
+        set_object_position(f"{cube_name}_cube", cube_position)
 
     pyb.resetBasePositionAndOrientation(tray_id, tray_position, [0, 0, 0, 1])
-    set_object_position("red_cube", cube_positions[0])
     set_object_position("blue_tray", tray_position)
 
     open_gripper(panda_id)
