@@ -8,6 +8,7 @@
 # Functions:
 # - get_wrist_camera_pose(): Computes camera eye, target, and up vectors from the end effector.
 # - capture_rgbd(): Captures RGB, depth, view matrix, and projection matrix from PyBullet.
+# - camera_position_from_view_matrix(): Extracts the world camera position from a PyBullet view matrix.
 # - pixel_to_world(): Converts one pixel plus depth sample into a PyBullet world point.
 # - save_rgb_frame(): Saves the current wrist RGB frame to outputs/ or a provided path.
 
@@ -88,6 +89,13 @@ def pixel_to_world(pixel, depth, view_matrix, projection_matrix, image_shape):
     world_point = np.linalg.inv(projection_matrix @ view_matrix) @ clip_space_point
     world_point /= world_point[3]
     return world_point[:3]
+
+
+def camera_position_from_view_matrix(view_matrix):
+    # PyBullet's view matrix maps world -> camera. Invert it to get camera -> world,
+    # then read the translation column: the camera's world-space position.
+    view_matrix = np.array(view_matrix).reshape(4, 4, order="F")
+    return np.linalg.inv(view_matrix)[:3, 3]
 
 
 def save_rgb_frame(panda_id, path=None):
