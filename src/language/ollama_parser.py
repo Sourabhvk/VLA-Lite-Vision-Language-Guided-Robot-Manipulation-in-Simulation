@@ -1,3 +1,17 @@
+# File: src/language/ollama_parser.py
+# Intent: Converts user text commands into structured robot task JSON via Ollama.
+# Usage: Called by keyboard command mode before schema validation and execution.
+# Presets: llama3.2:3b, Ollama /api/generate, JSON-only prompt format.
+# Connects: src/language/command_schema.py; src/sim/keyboard_controls.py; Ollama HTTP API.
+# User values: OLLAMA_HOST, OLLAMA_URL, OLLAMA_PS_URL, OLLAMA_MODEL.
+#
+# Functions:
+# - parse_command_with_ollama(): Gets raw Ollama JSON, parses it, then validates the task.
+# - ask_ollama(): Sends the prompt to Ollama and returns the model response text.
+# - print_ollama_status(): Prints whether the configured model is already loaded.
+# - model_is_loaded(): Checks Ollama's process list for the configured model.
+# - build_prompt(): Builds the constrained JSON prompt and command rules for Ollama.
+
 import json
 import os
 from urllib import request

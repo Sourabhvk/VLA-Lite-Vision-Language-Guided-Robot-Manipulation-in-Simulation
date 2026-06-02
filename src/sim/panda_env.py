@@ -1,3 +1,17 @@
+# File: src/sim/panda_env.py
+# Intent: Starts the PyBullet Panda scene and runs the interactive robot control loop.
+# Usage: Main entry point via python -m src.sim.panda_env or VS Code debug launch.
+# Presets: GUI mode, front camera, one extra cube by default, Panda URDF, plane, blue tray.
+# Connects: keyboard_controls.py; scene_objects.py; robot_control.py; camera_controls.py; failsafe.py.
+# User values: --test-gripper, --verbose, --extra-cubes, and config/robot_speeds.txt.
+#
+# Functions:
+# - build_cube_names(): Combines fixed color cubes with requested random distractor names.
+# - spawn_cubes(): Samples positions, creates cubes, and records them in the scene registry.
+# - disable_pybullet_profiling(): Disables PyBullet profiling when the local build exposes that flag.
+# - remove_pybullet_timing_dumps(): Removes PyBullet timings_*.json files from the workspace root.
+# - main(): Parses CLI flags, creates the scene, initializes the arm, and runs the GUI loop.
+
 import argparse
 from pathlib import Path
 import time

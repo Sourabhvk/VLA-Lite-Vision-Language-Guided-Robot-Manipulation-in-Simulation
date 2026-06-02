@@ -1,3 +1,24 @@
+# File: testing/test_pick_place_100.py
+# Intent: Runs repeated direct pick-and-place trials and writes result artifacts.
+# Usage: Manual benchmark script for scripted motion reliability in PyBullet DIRECT mode.
+# Presets: 1000 runs, tray/cube footprint sizes, output root, robot/world reference markers.
+# Connects: src/sim/routines.py; src/sim/scene_objects.py; src/sim/robot_control.py; outputs/testing/.
+# User values: RUNS, geometry thresholds, and OUTPUT_ROOT.
+#
+# Functions:
+# - cube_in_tray(): Checks whether a cube ended inside the tray footprint and above the table.
+# - cube_intersects_tray(): Detects invalid initial cube/tray footprint overlap.
+# - reset_scene(): Rebuilds a DIRECT PyBullet scene for one benchmark run.
+# - main(): Runs all trials, records results, plots artifacts, writes report, and prints summary.
+# - make_output_dir(): Creates a timestamped output directory under outputs/testing/.
+# - write_results(): Writes CSV rows for cube/tray positions and pass/fail status.
+# - plot_start_positions(): Plots pass/fail/overlap cube starts with tray locations.
+# - plot_failure_heatmap(): Writes a 2D heatmap of failed cube start positions.
+# - add_reference_markers(): Adds robot base and world origin markers to plots.
+# - write_report(): Writes a short Markdown summary for the benchmark run.
+# - print_summary(): Prints pass count, overlap count, and failure details.
+# - print_failure_summary(): Prints ranges and clusters for non-overlap failures.
+
 import sys
 from datetime import datetime
 from pathlib import Path

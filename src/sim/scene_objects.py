@@ -1,3 +1,20 @@
+# File: src/sim/scene_objects.py
+# Intent: Creates and samples tabletop cubes and the blue tray for the PyBullet scene.
+# Usage: Used by interactive startup, scene reset, and benchmark tests.
+# Presets: cube/tray sizes, spawn ranges, fixed cube colors, distractor colors, friction values.
+# Connects: src/sim/panda_env.py; src/sim/debug_controls.py; testing/test_pick_place_100.py.
+# User values: extra cube count, optional object positions, and color_name for cube creation.
+#
+# Functions:
+# - sample_position(): Samples one x/y/z position from provided ranges.
+# - sample_cube_position(): Samples a cube position inside the configured cube workspace.
+# - sample_blue_tray_position(): Samples a tray position inside the configured tray workspace.
+# - footprints_overlap(): Checks whether two top-down footprints overlap.
+# - sample_scene_positions(): Samples non-overlapping cube and tray positions.
+# - create_red_cube(): Convenience wrapper for creating a red cube.
+# - create_colored_cube(): Creates a physical/visual cube with named or random color.
+# - create_blue_tray(): Creates the flat blue target tray.
+
 import random
 
 import pybullet as pyb

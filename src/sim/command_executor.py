@@ -1,3 +1,14 @@
+# File: src/sim/command_executor.py
+# Intent: Executes validated structured robot tasks from the language layer.
+# Usage: Called after Ollama output passes command_schema validation.
+# Presets: pick, place, pick_place actions; blue tray placement routine.
+# Connects: src/language/command_schema.py; src/perception/vision_routines.py; src/sim/keyboard_controls.py.
+# User values: task action, source quantity, source color_text, and source hsv_ranges.
+#
+# Functions:
+# - execute_task(): Dispatches pick/place/pick_place actions and returns the arm home after placing.
+# - pick_from_source(): Passes validated HSV ranges and labels into the vision pick routine.
+
 from src.perception.vision_routines import (
     vision_pick_hsv_cube,
     vision_place_in_blue_tray,

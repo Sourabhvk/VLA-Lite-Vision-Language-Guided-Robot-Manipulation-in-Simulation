@@ -1,3 +1,13 @@
+# File: src/perception/depth_cluster.py
+# Intent: Converts detected mask pixels into a stable 3D world-space cube location.
+# Usage: Used after color detection to localize a cube from depth data.
+# Presets: MAX_CLUSTER_PIXELS limits projection work for large masks.
+# Connects: src/perception/camera.py; src/perception/object_localizer.py.
+# User values: None.
+#
+# Functions:
+# - mask_to_world_cluster(): Samples valid mask pixels, projects them, and returns the median world point.
+
 import numpy as np
 
 from src.perception.camera import pixel_to_world

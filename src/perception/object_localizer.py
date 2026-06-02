@@ -1,3 +1,16 @@
+# File: src/perception/object_localizer.py
+# Intent: Combines camera capture, color detection, and depth clustering into cube world positions.
+# Usage: Called by vision routines and manual red-cube debug controls.
+# Presets: red debug localization, named color ranges, and validated HSV command ranges.
+# Connects: src/perception/camera.py; color_detector.py; depth_cluster.py; vision_routines.py.
+# User values: color names, hsv_ranges, label text, and save_debug flag.
+#
+# Functions:
+# - localize_red_cube(): Localizes the red cube and saves debug imagery.
+# - localize_colored_cube(): Captures RGBD and localizes a cube by named color preset.
+# - localize_hsv_cube(): Captures RGBD and localizes a cube by validated HSV ranges.
+# - detection_to_world(): Converts one detection mask into a world position or reports failure.
+
 from src.perception.camera import capture_rgbd
 from src.perception.color_detector import detect_colored_cube, detect_hsv_cube, save_color_detection_debug
 from src.perception.depth_cluster import mask_to_world_cluster

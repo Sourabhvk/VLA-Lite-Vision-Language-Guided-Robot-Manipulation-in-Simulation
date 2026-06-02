@@ -1,3 +1,18 @@
+# File: src/language/command_schema.py
+# Intent: Validates and normalizes LLM-produced robot command dictionaries.
+# Usage: Runs before any parsed command reaches robot execution code.
+# Presets: supported actions, quantities, tray target, and known cube HSV ranges.
+# Connects: src/language/ollama_parser.py; src/sim/command_executor.py.
+# User values: color_text, quantity, hsv_ranges from typed commands or Ollama output.
+#
+# Functions:
+# - validate_task(): Checks action shape, fills default tray target, and validates nested fields.
+# - validate_source(): Requires cube source, valid quantity, and usable HSV ranges.
+# - apply_known_color_hsv_ranges(): Replaces known color words with deterministic HSV presets.
+# - validate_target(): Allows only the existing blue tray target.
+# - validate_hsv_ranges(): Verifies every HSV range has valid lower and upper triplets.
+# - valid_hsv_triplet(): Confirms one OpenCV HSV triplet is within accepted channel limits.
+
 SUPPORTED_ACTIONS = {"pick", "pick_place", "place"}
 SUPPORTED_QUANTITIES = {"one", "all"}
 KNOWN_COLOR_HSV_RANGES = {

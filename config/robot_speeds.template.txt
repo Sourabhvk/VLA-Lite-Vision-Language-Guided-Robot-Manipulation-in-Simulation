@@ -1,5 +1,12 @@
-# Copy this file to robot_speeds.txt for local tuning.
-# robot_speeds.txt is ignored by git.
+# File: config/robot_speeds.template.txt
+# Intent: Template for local Panda movement speed tuning.
+# Usage: Copy to config/robot_speeds.txt and edit values for local runs.
+# Presets: home, IK, and gripper velocity defaults.
+# Connects: src/sim/robot_control.py; config/robot_speeds.txt.
+# User values: home_max_velocity, ik_max_velocity, gripper_max_velocity.
+#
+# Functions:
+# - None: Key-value config template.
 
 home_max_velocity=0.6
 ik_max_velocity=0.6

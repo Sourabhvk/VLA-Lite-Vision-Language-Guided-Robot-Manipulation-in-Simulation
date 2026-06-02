@@ -1,3 +1,15 @@
+<!--
+File: README.md
+Intent: Explains the VLA-Lite project, architecture, controls, and current behavior.
+Usage: Human entry point for setup, running, demos, and understanding module flow.
+Presets: project command examples, architecture diagrams, hotkey summary, troubleshooting notes.
+Connects: docs/hotkeys.md; src/language; src/perception; src/sim; testing.
+User values: CLI flags, hotkeys, Ollama model/env vars, robot speed config.
+
+Functions:
+- None: Documentation file.
+-->
+
 # VLA-Lite: Vision-Language-Guided Robot Manipulation in Simulation
 
 VLA-Lite is a Python-first robotics simulation project where a Franka Panda arm uses a wrist camera, OpenCV perception, depth-based localization, Ollama command parsing, and IK control to pick a requested colored cube and place it into a blue tray.

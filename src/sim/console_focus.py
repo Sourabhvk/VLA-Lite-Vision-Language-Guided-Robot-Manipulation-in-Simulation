@@ -1,3 +1,13 @@
+# File: src/sim/console_focus.py
+# Intent: Brings the launching Windows console forward before text command input.
+# Usage: Called by keyboard command mode so input() is visible to the user.
+# Presets: Windows ShowWindow restore code 9.
+# Connects: src/sim/keyboard_controls.py; Windows user32/kernel32 APIs.
+# User values: None.
+#
+# Functions:
+# - focus_console_window(): Focuses the console on Windows and no-ops elsewhere.
+
 import ctypes
 import os
 

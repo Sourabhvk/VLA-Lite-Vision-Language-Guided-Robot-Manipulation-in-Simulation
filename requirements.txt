@@ -1,3 +1,13 @@
+# File: requirements.txt
+# Intent: Lists Python packages needed to run the simulation, perception, and plots.
+# Usage: Install with pip before running the project or benchmark scripts.
+# Presets: pybullet, numpy, opencv-python, matplotlib.
+# Connects: .venv; src/**/*.py; testing/test_pick_place_100.py.
+# User values: package names or versions if dependency pinning is needed.
+#
+# Functions:
+# - None: Dependency manifest.
+
 pybullet
 numpy
 opencv-python

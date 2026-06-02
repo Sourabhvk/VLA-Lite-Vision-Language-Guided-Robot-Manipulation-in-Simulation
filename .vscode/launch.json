@@ -1,3 +1,13 @@
+// File: .vscode/launch.json
+// Intent: Defines the VS Code debug entry point for the Panda simulation.
+// Usage: Start "Debug Panda Env" from VS Code's Run and Debug panel.
+// Presets: debugpy launch of module src.sim.panda_env in the integrated terminal.
+// Connects: src/sim/panda_env.py; project Python environment.
+// User values: debug configuration fields such as console, module, and justMyCode.
+//
+// Functions:
+// - None: VS Code JSONC launch config.
+
 {
   "version": "0.2.0",
   "configurations": [

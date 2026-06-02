@@ -1,3 +1,13 @@
+# File: src/sim/routines.py
+# Intent: Contains the basic scripted pick-and-place motion sequence.
+# Usage: Used by manual tests and non-vision benchmark runs.
+# Presets: approach, pre-grasp, grasp, and tray drop z offsets plus timing sleeps.
+# Connects: src/sim/robot_control.py; testing/test_pick_place_100.py.
+# User values: source_position and target_position passed by caller.
+#
+# Functions:
+# - pick_and_place(): Moves above source, grasps, lifts, moves to tray, drops, and releases.
+
 from src.sim.robot_control import (
     close_gripper,
     move_ee_to_position,

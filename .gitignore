@@ -1,3 +1,13 @@
+# File: .gitignore
+# Intent: Keeps local environments, caches, generated outputs, and machine-specific config out of git.
+# Usage: Used automatically by git status/add/commit.
+# Presets: Python caches, virtualenvs, outputs, timing dumps, local speed config, editor files.
+# Connects: config/robot_speeds.txt; outputs/; .venv/; PyBullet timings_*.json.
+# User values: ignore patterns added when new generated/local files appear.
+#
+# Functions:
+# - None: Git ignore rules file.
+
 # Virtual environments
 .venv/
 venv/

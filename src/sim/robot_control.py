@@ -1,3 +1,22 @@
+# File: src/sim/robot_control.py
+# Intent: Provides low-level Panda arm, gripper, speed, and simulation stepping controls.
+# Usage: Shared by startup, scripted routines, keyboard controls, tests, and vision routines.
+# Presets: joint indices, home pose, gripper widths, motor forces, friction, default speeds.
+# Connects: config/robot_speeds.txt; src/sim/ik_solver.py; PyBullet joint motor APIs.
+# User values: home_max_velocity, ik_max_velocity, gripper_max_velocity.
+#
+# Functions:
+# - load_speed_config(): Loads local speed overrides from config/robot_speeds.txt.
+# - step_simulation(): Advances PyBullet for a requested duration and step rate.
+# - move_arm_to_home(): Sends the Panda arm to the configured home joint pose.
+# - configure_gripper_friction(): Applies lateral friction to the gripper finger joints.
+# - move_ee_to_position(): Solves IK and commands arm joints toward a world target.
+# - move_ee_up(): Raises the end effector by a requested distance.
+# - set_gripper_width(): Commands both finger joints to a target opening width.
+# - open_gripper(): Opens fingers to the configured open width.
+# - close_gripper(): Closes fingers to the configured closed width.
+# - print_gripper_state(): Prints current finger joint positions for debugging.
+
 from pathlib import Path
 
 import pybullet as pyb

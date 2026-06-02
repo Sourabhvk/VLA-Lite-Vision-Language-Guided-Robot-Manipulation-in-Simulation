@@ -1,3 +1,16 @@
+# File: src/perception/camera.py
+# Intent: Captures wrist-camera RGB/depth frames and projects pixels into world coordinates.
+# Usage: Used by object localization and manual camera-frame debugging.
+# Presets: 1280x720 image size, 60 degree FOV, tuned wrist camera offsets.
+# Connects: src/sim/robot_control.py; src/perception/depth_cluster.py; PyBullet camera APIs.
+# User values: save path override in save_rgb_frame(); camera constants when tuning perception.
+#
+# Functions:
+# - get_wrist_camera_pose(): Computes camera eye, target, and up vectors from the end effector.
+# - capture_rgbd(): Captures RGB, depth, view matrix, and projection matrix from PyBullet.
+# - pixel_to_world(): Converts one pixel plus depth sample into a PyBullet world point.
+# - save_rgb_frame(): Saves the current wrist RGB frame to outputs/ or a provided path.
+
 from datetime import datetime
 from pathlib import Path
 

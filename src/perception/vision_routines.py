@@ -1,3 +1,19 @@
+# File: src/perception/vision_routines.py
+# Intent: Runs vision-guided pick and place motions from detected cube/tray positions.
+# Usage: Called by keyboard demos and structured command execution.
+# Presets: approach, pre-grasp, grasp, and tray drop height offsets from routines.py.
+# Connects: src/perception/object_localizer.py; src/sim/robot_control.py; src/sim/scene_registry.py.
+# User values: requested color, hsv_ranges, and command label text.
+#
+# Functions:
+# - vision_pick_and_place_red_cube(): Runs the red cube pick-and-place demo.
+# - vision_pick_and_place_colored_cube(): Picks a named color cube, then places it in the tray.
+# - vision_pick_colored_cube(): Picks a cube located by built-in color preset.
+# - vision_pick_hsv_cube(): Picks a cube located by validated HSV command ranges.
+# - vision_pick_cube(): Shared vision pick sequence with close-range re-detection.
+# - vision_place_in_blue_tray(): Moves above the blue tray, lowers, opens gripper, and releases.
+# - above(): Adds a z offset to a world position.
+
 from src.perception.object_localizer import localize_colored_cube, localize_hsv_cube
 from src.sim.robot_control import close_gripper, move_ee_to_position, open_gripper, step_simulation
 from src.sim.routines import (

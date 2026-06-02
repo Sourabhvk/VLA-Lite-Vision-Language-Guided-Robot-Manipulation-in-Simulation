@@ -1,3 +1,15 @@
+# File: src/sim/keyboard_controls.py
+# Intent: Maps PyBullet keyboard events to robot, camera, perception, and language actions.
+# Usage: Called every interactive simulation loop tick from panda_env.py.
+# Presets: hotkeys h/o/c/f/v/t/u/r/b/d/i/y/q/j/m/l.
+# Connects: ollama_parser.py; command_executor.py; camera_controls.py; debug_controls.py; robot_control.py.
+# User values: typed command text after pressing l; active cube/tray IDs from the scene.
+#
+# Functions:
+# - run_text_command(): Parses a typed command with Ollama and executes the validated task.
+# - key_pressed(): Checks whether a specific key was triggered in PyBullet's event map.
+# - handle_keyboard_controls(): Dispatches all interactive hotkeys for movement, vision, reset, and commands.
+
 import pybullet as pyb
 
 from src.perception.camera import save_rgb_frame

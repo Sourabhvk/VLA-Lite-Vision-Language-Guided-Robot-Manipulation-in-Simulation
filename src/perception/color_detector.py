@@ -1,3 +1,20 @@
+# File: src/perception/color_detector.py
+# Intent: Detects colored cube candidates in RGB camera frames using OpenCV HSV masks.
+# Usage: Called by object localization for named colors or command-provided HSV ranges.
+# Presets: cube HSV ranges, confidence threshold, contour area, and max image area ratio.
+# Connects: src/perception/object_localizer.py; src/perception/camera.py; OpenCV.
+# User values: hsv_ranges from validated commands; optional debug output path.
+#
+# Functions:
+# - detect_colored_cube(): Finds a cube using a named color preset.
+# - detect_hsv_cube(): Finds a cube using caller-supplied HSV ranges.
+# - detect_cube_from_mask(): Turns a binary color mask into the best cube detection.
+# - color_mask(): Builds a mask from the built-in COLOR_RANGES table.
+# - hsv_range_mask(): Builds a mask from validated command HSV ranges.
+# - best_cube_detection(): Chooses the highest-confidence contour that looks like a cube.
+# - cube_confidence(): Scores color fill, shape, saturation, brightness, and size.
+# - save_color_detection_debug(): Writes a labeled debug image for detection results.
+
 from datetime import datetime
 from pathlib import Path
 

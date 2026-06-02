@@ -1,3 +1,15 @@
+<!--
+File: docs/hotkeys.md
+Intent: Documents interactive PyBullet keyboard controls and command-driven demos.
+Usage: Reference while the simulation GUI is running.
+Presets: robot, camera, debug, perception, and language hotkeys.
+Connects: src/sim/keyboard_controls.py; README.md.
+User values: typed commands after l, and selected hotkeys during GUI control.
+
+Functions:
+- None: Documentation file.
+-->
+
 # Simulation Hotkeys
 
 Click inside the PyBullet window before pressing keys.

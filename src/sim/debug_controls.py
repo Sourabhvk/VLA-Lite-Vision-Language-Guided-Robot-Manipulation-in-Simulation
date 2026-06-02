@@ -1,3 +1,13 @@
+# File: src/sim/debug_controls.py
+# Intent: Resets cube/tray positions and returns the Panda arm to a known home state.
+# Usage: Called by the keyboard reset hotkey during interactive simulation.
+# Presets: scene sampler spacing, open gripper, and home pose reset.
+# Connects: src/sim/keyboard_controls.py; scene_objects.py; scene_registry.py; robot_control.py.
+# User values: cube_ids, cube_names, and tray_id from the active PyBullet scene.
+#
+# Functions:
+# - reset_scene_and_home(): Resamples scene objects, updates the registry, opens gripper, and homes the arm.
+
 import pybullet as pyb
 
 from src.sim.robot_control import move_arm_to_home, open_gripper, step_simulation

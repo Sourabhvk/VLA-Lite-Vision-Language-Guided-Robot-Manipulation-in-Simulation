@@ -1,3 +1,13 @@
+# File: src/sim/ik_solver.py
+# Intent: Solves Panda inverse kinematics for target end-effector positions.
+# Usage: Used by robot_control.move_ee_to_position().
+# Presets: Panda joint limits, joint ranges, home rest pose, and downward gripper orientation.
+# Connects: src/sim/robot_control.py; PyBullet calculateInverseKinematics.
+# User values: target_position passed by routines, keyboard controls, or vision routines.
+#
+# Functions:
+# - solve_panda_ik(): Returns seven Panda arm joint targets for a requested world position.
+
 import pybullet as pyb
 
 from src.sim.robot_control import END_EFFECTOR_LINK_INDEX, HOME_POSE

@@ -1,3 +1,13 @@
+# File: src/sim/camera_controls.py
+# Intent: Stores and applies named PyBullet debug camera views.
+# Usage: Called by startup and keyboard hotkeys to reframe the GUI camera.
+# Presets: front, side, and top view dictionaries.
+# Connects: src/sim/panda_env.py; src/sim/keyboard_controls.py; PyBullet debug visualizer.
+# User values: cameraDistance, cameraYaw, cameraPitch, and cameraTargetPosition in CAMERA_VIEWS.
+#
+# Functions:
+# - set_camera_view(): Applies one named camera preset to the PyBullet GUI.
+
 import pybullet as pyb
 
 CAMERA_VIEWS = {
