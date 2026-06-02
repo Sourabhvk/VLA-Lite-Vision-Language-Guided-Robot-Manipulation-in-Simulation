@@ -10,10 +10,11 @@
 # - vision_pick_and_place_colored_cube(): Picks a named color cube, then places it in the tray.
 # - vision_pick_colored_cube(): Picks a cube located by built-in color preset.
 # - vision_pick_hsv_cube(): Picks a cube located by validated HSV command ranges.
-# - vision_pick_cube(): Shared vision pick sequence with close-range re-detection.
+# - vision_pick_cube(): Shared vision pick sequence with optional multi-view refinement.
 # - vision_place_in_blue_tray(): Moves above the blue tray, lowers, opens gripper, and releases.
 # - above(): Adds a z offset to a world position.
 
+from src.perception.multiview_localizer import localize_colored_cube_multiview, localize_hsv_cube_multiview
 from src.perception.object_localizer import localize_colored_cube, localize_hsv_cube
 from src.sim.robot_control import close_gripper, move_ee_to_position, move_pinch_center_to_position, open_gripper, step_simulation
 from src.sim.routines import (
@@ -35,23 +36,27 @@ def vision_pick_and_place_colored_cube(panda_id, color):
 
 
 def vision_pick_colored_cube(panda_id, color):
-    return vision_pick_cube(panda_id, lambda: localize_colored_cube(panda_id, color))
+    return vision_pick_cube(
+        panda_id,
+        lambda: localize_colored_cube(panda_id, color),
+        lambda rough_position: localize_colored_cube_multiview(panda_id, color, rough_position),
+    )
 
 
 def vision_pick_hsv_cube(panda_id, hsv_ranges, label="requested"):
-    return vision_pick_cube(panda_id, lambda: localize_hsv_cube(panda_id, hsv_ranges, label))
+    return vision_pick_cube(
+        panda_id,
+        lambda: localize_hsv_cube(panda_id, hsv_ranges, label),
+        lambda rough_position: localize_hsv_cube_multiview(panda_id, hsv_ranges, rough_position, label),
+    )
 
 
-def vision_pick_cube(panda_id, localize_cube):
+def vision_pick_cube(panda_id, localize_cube, refine_cube=None):
     cube_position = localize_cube()
     if cube_position is None:
         return False
 
-    # First move above the rough detection, then re-detect from a closer view.
-    move_pinch_center_to_position(panda_id, above(cube_position, APPROACH_HEIGHT_OFFSET))
-    step_simulation(seconds=1.2)
-
-    refined_cube_position = localize_cube()
+    refined_cube_position = refine_cube(cube_position) if refine_cube is not None else localize_cube()
     if refined_cube_position is not None:
         cube_position = refined_cube_position
 
