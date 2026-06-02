@@ -1,5 +1,17 @@
 SUPPORTED_ACTIONS = {"pick", "pick_place", "place"}
 SUPPORTED_QUANTITIES = {"one", "all"}
+KNOWN_COLOR_HSV_RANGES = {
+    "red": [
+        {"lower": [0, 140, 120], "upper": [10, 255, 255]},
+        {"lower": [170, 140, 120], "upper": [180, 255, 255]},
+    ],
+    "orange": [{"lower": [10, 120, 120], "upper": [25, 255, 255]}],
+    "yellow": [{"lower": [25, 100, 120], "upper": [40, 255, 255]}],
+    "green": [{"lower": [45, 100, 100], "upper": [80, 255, 255]}],
+    "blue": [{"lower": [100, 120, 80], "upper": [130, 255, 255]}],
+    "violet": [{"lower": [135, 80, 80], "upper": [165, 255, 255]}],
+    "purple": [{"lower": [135, 80, 80], "upper": [165, 255, 255]}],
+}
 
 
 def validate_task(task):
@@ -23,7 +35,16 @@ def validate_source(source):
         raise ValueError("Source must be a cube")
     if source.get("quantity") not in SUPPORTED_QUANTITIES:
         raise ValueError("Quantity must be one or all")
+    apply_known_color_hsv_ranges(source)
     validate_hsv_ranges(source.get("hsv_ranges"))
+
+
+def apply_known_color_hsv_ranges(source):
+    color_text = str(source.get("color_text", "")).lower()
+    for color, ranges in KNOWN_COLOR_HSV_RANGES.items():
+        if color in color_text:
+            source["hsv_ranges"] = ranges
+            return
 
 
 def validate_target(target):
