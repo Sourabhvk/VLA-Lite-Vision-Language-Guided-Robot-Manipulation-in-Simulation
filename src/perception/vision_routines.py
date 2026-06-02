@@ -15,7 +15,7 @@
 # - above(): Adds a z offset to a world position.
 
 from src.perception.object_localizer import localize_colored_cube, localize_hsv_cube
-from src.sim.robot_control import close_gripper, move_ee_to_position, open_gripper, step_simulation
+from src.sim.robot_control import close_gripper, move_ee_to_position, move_pinch_center_to_position, open_gripper, step_simulation
 from src.sim.routines import (
     APPROACH_HEIGHT_OFFSET,
     GRASP_Z_OFFSET,
@@ -48,17 +48,17 @@ def vision_pick_cube(panda_id, localize_cube):
         return False
 
     # First move above the rough detection, then re-detect from a closer view.
-    move_ee_to_position(panda_id, above(cube_position, APPROACH_HEIGHT_OFFSET))
+    move_pinch_center_to_position(panda_id, above(cube_position, APPROACH_HEIGHT_OFFSET))
     step_simulation(seconds=1.2)
 
     refined_cube_position = localize_cube()
     if refined_cube_position is not None:
         cube_position = refined_cube_position
 
-    move_ee_to_position(panda_id, above(cube_position, PRE_GRASP_HEIGHT_OFFSET))
+    move_pinch_center_to_position(panda_id, above(cube_position, PRE_GRASP_HEIGHT_OFFSET))
     step_simulation(seconds=0.8)
 
-    move_ee_to_position(panda_id, above(cube_position, GRASP_Z_OFFSET))
+    move_pinch_center_to_position(panda_id, above(cube_position, GRASP_Z_OFFSET))
     step_simulation(seconds=1.0)
 
     close_gripper(panda_id)

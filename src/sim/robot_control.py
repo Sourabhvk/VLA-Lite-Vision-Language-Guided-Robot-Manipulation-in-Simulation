@@ -11,6 +11,8 @@
 # - move_arm_to_home(): Sends the Panda arm to the configured home joint pose.
 # - configure_gripper_friction(): Applies lateral friction to the gripper finger joints.
 # - move_ee_to_position(): Solves IK and commands arm joints toward a world target.
+# - gripper_pinch_center(): Measures the midpoint between the two finger links.
+# - move_pinch_center_to_position(): Iteratively corrects motion so the pinch center reaches target.
 # - move_ee_up(): Raises the end effector by a requested distance.
 # - set_gripper_width(): Commands both finger joints to a target opening width.
 # - open_gripper(): Opens fingers to the configured open width.
@@ -103,6 +105,36 @@ def move_ee_to_position(panda_id, target_position):
             force=ARM_MOTOR_FORCE,
             maxVelocity=SPEEDS["ik_max_velocity"],
         )
+
+
+def gripper_pinch_center(panda_id):
+    left = pyb.getLinkState(panda_id, GRIPPER_JOINT_INDICES[0])[0]
+    right = pyb.getLinkState(panda_id, GRIPPER_JOINT_INDICES[1])[0]
+    return [(left[index] + right[index]) / 2 for index in range(3)]
+
+
+def move_pinch_center_to_position(panda_id, target_position, iterations=3, settle_seconds=0.35):
+    ee_target = list(target_position)
+    good_target = ee_target
+    best_error = None
+    for _ in range(iterations):
+        move_ee_to_position(panda_id, ee_target)
+        step_simulation(seconds=settle_seconds)
+        pinch = gripper_pinch_center(panda_id)
+        error = [target_position[index] - pinch[index] for index in range(3)]
+        error_size = error[0] ** 2 + error[1] ** 2
+        if best_error is not None and error_size >= best_error:
+            move_ee_to_position(panda_id, good_target)
+            step_simulation(seconds=settle_seconds)
+            break
+        best_error = error_size
+        good_target = ee_target
+        # IK can jump if the correction is too large; keep each refinement local.
+        ee_target = [
+            ee_target[0] + max(-0.02, min(0.02, error[0])),
+            ee_target[1] + max(-0.02, min(0.02, error[1])),
+            ee_target[2],
+        ]
 
 
 def move_ee_up(panda_id, distance=0.25):
