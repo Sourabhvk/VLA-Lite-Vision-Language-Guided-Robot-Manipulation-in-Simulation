@@ -1,96 +1,50 @@
-<!--
-File: README.md
-Intent: Explains the VLA-Lite project, architecture, controls, and current behavior.
-Usage: Human entry point for setup, running, demos, and understanding module flow.
-Presets: project command examples, architecture diagrams, hotkey summary, troubleshooting notes.
-Connects: docs/hotkeys.md; src/language; src/perception; src/sim; testing.
-User values: CLI flags, hotkeys, Ollama model/env vars, robot speed config.
+# VLA-Lite: Vision-Language Robot Manipulation in PyBullet
 
-Functions:
-- None: Documentation file.
--->
-
-# VLA-Lite: Vision-Language-Guided Robot Manipulation in Simulation
-
-VLA-Lite is a Python-first robotics simulation project where a Franka Panda arm uses a wrist camera, OpenCV perception, depth-based localization, Ollama command parsing, and IK control to pick a requested colored cube and place it into a blue tray.
-
-The guiding command is:
+**VLA-Lite** is a complete simulated Vision-Language-Action project: a **Franka Panda** robot receives a natural-language command, identifies the requested cube through **wrist-camera RGB-D perception**, reconstructs the cube's **3D world position**, picks it, and places it into a blue tray.
 
 ```text
 pick green cube and place in blue tray
 ```
 
-The project is built as an end-to-end learning system: every major robotics step is visible in code, from scene setup to perception output to robot motion.
+The project is intentionally small enough to understand end to end, but it includes the important robotics pieces: command parsing, HSV color perception, depth projection, multi-view 3D reconstruction, inverse kinematics, gripper execution, randomized testing, and metric artifacts.
 
-## Demo Snapshots
+## Visual Demo
 
-| Home | Wrist-camera detection | Place attempt |
+| Simulation View | Wrist-Camera Detection | Placement |
 | --- | --- | --- |
-| <img src="docs/home.png" width="260"> | <img src="docs/red_detection_20260529_003546_566007.png" width="260"> | <img src="docs/place.png" width="260"> |
-
-## Objective
-
-The project connects four parts of the manipulation stack:
-
-1. language intent: understand the target object and destination,
-2. vision: detect the requested colored cube from the robot's camera,
-3. geometry: convert image/depth data into a 3D target,
-4. control: move the Panda gripper through a pick-and-place sequence.
-
-The task is narrow by design: it gives a clear pass/fail loop while the implementation remains easy to inspect.
-
-## Highlights
-
-- End-to-end wrist-camera perception pipeline using OpenCV and depth projection
-- Practical PyBullet-based robot control with an `ik_solver` wrapper and waypoint motion
-- Reproducible reliability testing harness with CSV logs and failure heatmaps
-- Config-driven speed and physics tuning for easier local experimentation
-- Ollama-backed command parser with schema validation before robot execution
-
-## Implemented features (concrete)
-
-- Wrist-camera RGB-D capture and debug output: `src/perception/camera.py` and `src/perception/color_detector.py`
-- Depth projection and clustering for world-point estimation: `src/perception/depth_cluster.py` and `src/perception/object_localizer.py`
-- Vision-driven routines and robot interface: `src/perception/vision_routines.py`, `src/sim/robot_control.py`, and `src/sim/ik_solver.py`
-- Simulation entry, interactive controls, and panel toggles: `src/sim/panda_env.py`, `src/sim/keyboard_controls.py`, and `src/sim/debug_controls.py`
-- Ollama command parsing and validation: `src/language/ollama_parser.py`, `src/language/command_schema.py`, and `src/sim/command_executor.py`
-- Config-driven speed and physics tuning: `config/robot_speeds.template.txt` (copy to `config/robot_speeds.txt`)
-- Reproducible reliability testing and run artifacts: `testing/test_pick_place_100.py` and the `outputs/testing/` folder
-- Logging and developer utilities: `src/sim/logging_utils.py` and small test helpers in `src/testing/`
+| <img src="docs/home.png" width="300"> | <img src="docs/red_detection_20260529_003546_566007.png" width="300"> | <img src="docs/place.png" width="300"> |
 
 ## Tech Stack
 
-| Area | Tooling | Why it is used |
-| --- | --- | --- |
-| Simulation | PyBullet | Lightweight physics, Panda URDF support, camera rendering, contact checks |
-| Robot model | Franka Panda | Standard 7-DOF manipulator with a simple parallel gripper |
-| Control | PyBullet IK + joint motor commands | Fast path from target end-effector pose to joint targets |
-| Vision | OpenCV | Color thresholding, contour detection, bbox debug output |
-| Geometry | NumPy | Depth projection, point clustering, matrix math |
-| Testing | Matplotlib + CSV logs | Reliability plots, failure heatmaps, run artifacts |
-| Language | Ollama + JSON validation | Maps typed prompts to safe structured robot commands |
+| Layer | Tech |
+| --- | --- |
+| Language | **Ollama**, JSON-only task parsing, schema validation |
+| Vision | **OpenCV**, HSV thresholding, contour scoring |
+| Depth | **PyBullet RGB-D camera**, depth buffer unprojection |
+| 3D reconstruction | **NumPy**, point-cloud trimming, multi-view bounds |
+| Simulation | **PyBullet**, Franka Panda URDF, DIRECT and GUI modes |
+| Control | **PyBullet inverse kinematics**, joint position control |
+| Metrics | **Matplotlib**, CSV logs, Markdown reports |
 
-Core dependencies:
+## Headline Result
+
+The latest multi-view benchmark gets **99.00% pick-and-place success**:
 
 ```text
-pybullet
-numpy
-opencv-python
-matplotlib
+Run folder: outputs/testing/run_20260602_201217_multiview
+Mode: multiview
+Runs: 100
+Successes: 99
+Success rate: 99.00%
+Initial cube/tray overlaps: 0
+Non-overlap failures: 1
 ```
 
-## Testing And Failure Analysis
-
-Reliability is part of the implementation work. The randomized test script runs repeated pick-and-place trials and writes CSV data plus plots.
-
-```powershell
-python testing\test_pick_place_100.py
-```
-
-Historical 1000-run result:
+Older direct-control benchmark:
 
 ```text
 Run folder: outputs/testing/run_20260527_235245
+Mode: direct
 Runs: 1000
 Successes: 702
 Success rate: 70.20%
@@ -98,197 +52,307 @@ Initial cube/tray overlaps: 0
 Non-overlap failures: 298
 ```
 
-| Start positions | Failure heatmap |
-| --- | --- |
-| <img src="outputs/testing/run_20260527_235245/start_positions.png" width="320"> | <img src="outputs/testing/run_20260527_235245/failure_heatmap.png" width="320"> |
+The difference is the perception loop. The old version trusted one target estimate. The newer version uses a rough detection, moves the wrist camera through multiple inspection poses, merges depth points from those views, and estimates the cube center from the reconstructed 3D point cloud.
 
-### What the data showed
-
-The failures were position-dependent. They were concentrated in specific workspace regions instead of being scattered uniformly. That pointed the debugging toward reachability, approach height, gripper alignment, and motion timing rather than only perception.
-
-The reliability test uses ground-truth scene positions, so it separates robot/control problems from OpenCV problems. That distinction helped keep fixes targeted.
-
-### What changed after the tests
-
-- Scene generation now rejects invalid cube/tray overlap cases before a run starts.
-- The tray is randomized too, so the system is tested against more than one destination.
-- Gripper friction, cube friction, and gripper force were tuned after observing failed lifts.
-- OpenCV detection now uses confidence gating so weak red detections do not trigger motion.
-- Distractor cube colors avoid red-like values, keeping the color detector's job well defined.
-
-## Code Module Flow
+## What The Robot Actually Does
 
 ```mermaid
 flowchart LR
-    A["Command"] --> B["ollama_parser.py"]
-    B --> C["command_schema.py"]
-    C --> D["command_executor.py"]
-    D --> E["vision_routines.py"]
-    E --> F["camera.py"]
-    F --> G["color_detector.py"]
-    G --> H["depth_cluster.py"]
-    H --> I["object_localizer.py"]
-    I --> J["robot_control.py"]
-    J --> K["ik_solver.py"]
-    K --> L["panda_env.py"]
+    U["User prompt"] --> O["Ollama JSON task"]
+    O --> V["Schema validation"]
+    V --> C["HSV color ranges"]
+    C --> M["OpenCV mask"]
+    M --> D["RGB-D depth pixels"]
+    D --> P["3D point cloud"]
+    P --> R["Refined cube center"]
+    R --> I["IK target poses"]
+    I --> G["Pinch-center grasp"]
+    G --> T["Place in blue tray"]
 ```
 
-## Architecture
+The command layer does not send free-form text straight to the robot. Ollama produces a small JSON task, `command_schema.py` validates it, and the executor only runs supported actions: `pick`, `place`, or `pick_place`.
 
-```mermaid
-flowchart LR
-    subgraph Entry["Simulation Entry"]
-        S1["panda_env.py"]
-        S2["keyboard_controls.py"]
-        S3["debug_controls.py"]
-    end
+## Color Detection
 
-    subgraph Scene["Scene State"]
-        O1["scene_objects.py"]
-        O2["scene_registry.py"]
-    end
+The color system is not based on "avoid similar distractors." It uses explicit **OpenCV HSV ranges**.
 
-    subgraph Perception["Wrist-Camera Perception"]
-        P1["camera.py"]
-        P2["color_detector.py"]
-        P3["depth_cluster.py"]
-        P4["object_localizer.py"]
-    end
+RGB images from the PyBullet wrist camera are converted to HSV:
 
-    subgraph Task["Task Layer"]
-        L1["ollama_parser.py"]
-        L2["command_schema.py"]
-        R1["command_executor.py"]
-        R2["vision_routines.py"]
-        R3["routines.py"]
-    end
+```text
+RGB image -> HSV image -> threshold ranges -> binary mask -> contours -> cube candidate
+```
 
-    subgraph Control["Robot Control"]
-        C1["robot_control.py"]
-        C2["ik_solver.py"]
-        C3["failsafe.py"]
-    end
+The built-in color ranges live in `src/perception/color_detector.py` and `src/language/command_schema.py`. Example presets:
 
-    S1 --> S2
-    S1 --> S3
-    S1 --> C3
-    S1 --> O1
-    S1 --> O2
-    S2 --> P4
-    S2 --> L1
-    S2 --> R1
-    S2 --> R2
-    P1 --> P2
-    P2 --> P3
-    P3 --> P4
-    P4 --> R1
-    L1 --> L2
-    L2 --> R1
-    R1 --> R2
-    R1 --> C1
-    R2 --> C1
-    C1 --> C2
+| Color | HSV range |
+| --- | --- |
+| Green | `[45,100,100]..[80,255,255]` |
+| Blue | `[100,120,80]..[130,255,255]` |
+
+Ollama can also infer HSV ranges from a typed command. Before robot execution, `command_schema.py` validates every triplet:
+
+```text
+0 <= H <= 180
+0 <= S <= 255
+0 <= V <= 255
+```
+
+Then OpenCV finds contours from the mask. The detector scores each candidate with:
+
+```text
+confidence =
+  0.30 * color_fill
++ 0.25 * square_score
++ 0.20 * saturation_score
++ 0.15 * value_score
++ 0.10 * size_score
+```
+
+That is why the detector can reject weak blobs and tray-sized regions. A good cube is saturated, bright, compact, square-ish, and mostly filled by the requested color.
+
+## Wrist Camera Math
+
+The camera is mounted relative to the Panda end effector. Every RGB-D frame is captured from a synthetic wrist pose:
+
+```text
+eye    = end_effector_position + [0.12, 0.00,  0.12]
+target = end_effector_position + [0.18, 0.00, -0.28]
+up     = [0, 0, 1]
+```
+
+PyBullet uses those vectors to build a view matrix, and a 60 degree FOV projection matrix:
+
+```text
+view       = computeViewMatrix(eye, target, up)
+projection = computeProjectionMatrixFOV(fov=60, aspect=1280/720, near=0.01, far=2.0)
+```
+
+Each OpenCV detection gives a pixel center `(x, y)` and a binary mask. For every valid mask pixel, the depth buffer value is converted into [normalized device coordinates](docs/ndc.md):
+
+```text
+ndc_x = 2*x/width - 1
+ndc_y = 1 - 2*y/height
+ndc_z = 2*z_buffer - 1
+
+clip = [ndc_x, ndc_y, ndc_z, 1]
+```
+
+Then the project reverses the camera transform:
+
+```text
+world_h = inverse(projection * view) * clip
+world   = world_h.xyz / world_h.w
+```
+
+That is the bridge from a 2D OpenCV mask to a real PyBullet world coordinate the robot can move toward.
+
+## From Median Point To 3D Reconstruction
+
+The first localization method projected mask pixels into world space, removed outliers, and took the median:
+
+```text
+visible_center = median(projected_mask_points)
+```
+
+That is simple and stable, but a wrist camera usually sees the near face of the cube, not the true cube center. So the project nudges the estimate inward along the camera ray:
+
+```text
+view_xy = visible_center.xy - camera_position.xy
+inset   = clamp(norm(point_spread_xy) * 0.35, 0.012, 0.035)
+center.xy = visible_center.xy + normalize(view_xy) * inset
+```
+
+That helped, but it still depended on one view. The final multi-view idea is stronger: move the wrist camera around the rough estimate, collect visible depth points from multiple angles, and reconstruct the cube from the combined point cloud.
+
+## Multi-View Localization
+
+The multi-view scan uses four inspection poses around the rough cube estimate:
+
+| View | Offset from rough cube position |
+| --- | --- |
+| Center | `(0.00, 0.00, 0.30)` |
+| Left | `(0.00, 0.12, 0.30)` |
+| Right | `(0.00, -0.12, 0.30)` |
+| Front | `(-0.12, 0.00, 0.30)` |
+
+For each view:
+
+```text
+move wrist camera -> capture RGB-D -> HSV mask -> project mask pixels -> world points
+```
+
+Then all valid points are merged:
+
+```text
+P = points_center union points_left union points_right union points_front
+P_clean = trim_outliers(P, 10th..90th percentile)
+```
+
+The cube center is estimated from the cleaned point-cloud bounds:
+
+```text
+lower  = min(P_clean, axis=0)
+upper  = max(P_clean, axis=0)
+center = (lower + upper) / 2
+center_z = upper_z - cube_half_size
+```
+
+The `z` correction matters because the camera usually sees the top and side faces, not the bottom face sitting on the table.
+
+## Multi-View Proof
+
+This GUI debug run saved RGB, mask, depth, and world-coordinate debug images for every view:
+
+```text
+outputs/multiview_gui/run_20260602_195006
+```
+
+Each view writes the full perception trace:
+
+```text
+RGB frame -> HSV mask -> depth image -> bbox/world overlay
+```
+
+| Center | Left | Right | Front |
+| --- | --- | --- | --- |
+| <img src="outputs/multiview_gui/run_20260602_195006/center_04_bbox_world.png" width="185"> | <img src="outputs/multiview_gui/run_20260602_195006/left_04_bbox_world.png" width="185"> | <img src="outputs/multiview_gui/run_20260602_195006/right_04_bbox_world.png" width="185"> | <img src="outputs/multiview_gui/run_20260602_195006/front_04_bbox_world.png" width="185"> |
+
+The same run produced this calculation:
+
+```text
+Actual PyBullet cube center:    (0.48000, 0.00000, 0.02999)
+Merged point count:             3344
+Trimmed merged min xyz:         (0.45655, -0.02554, 0.06003)
+Trimmed merged max xyz:         (0.50998,  0.02573, 0.06004)
+Estimated center:               (0.48327,  0.00009, 0.03004)
+Error estimated - actual:       (0.00327,  0.00009, 0.00005)
+```
+
+That is the core reason multi-view helped: one view can mistake a visible face for the object center; multiple views recover the cube's x/y extent and let the code estimate the actual geometric center.
+
+The debug script also writes `view_calculations.csv`, so the per-view bbox, confidence, point count, and 3D min/max bounds can be inspected instead of trusting only the final image.
+
+## Benchmark Evidence
+
+Latest benchmark command:
+
+```powershell
+python testing\test_pick_place_100.py --MV
+```
+
+The test runs in PyBullet DIRECT mode, resets the scene every trial, samples new cube/tray positions, runs the vision-guided pick-and-place sequence, and writes:
+
+```text
+report.md
+pick_place_results.csv
+start_positions.png
+failure_heatmap.png
+```
+
+| Start Positions | Failure Heatmap |
+| --- | --- |
+| <img src="outputs/testing/run_20260602_201217_multiview/start_positions.png" width="390"> | <img src="outputs/testing/run_20260602_201217_multiview/failure_heatmap.png" width="390"> |
+
+The new plot is mostly green because the multi-view estimate gives the gripper a much better target. The single remaining failure is isolated instead of forming the large failure region seen in the older direct benchmark.
+
+## Calibration Tests
+
+Two smaller test scripts were used to make the final benchmark meaningful.
+
+`testing/test_detection_offset.py` checks the perception side. It places known colored cubes at fixed world positions, runs the same RGB-D + HSV + depth-cluster path used by picking, and compares the detected world point against PyBullet ground truth.
+
+```text
+actual cube center -> detected world point -> xyz error
+```
+
+It writes a CSV, Markdown report, offset plot, and per-case debug images under `outputs/detection_offset/`.
+
+`testing/test_tcp_offset.py` checks the robot side. It measures the difference between the requested target, Panda link 11, and the actual midpoint between the two gripper fingers. That test is why the motion layer targets the **pinch center** instead of blindly trusting the end-effector link.
+
+```text
+requested target -> link-11 position
+requested target -> finger midpoint
+```
+
+It writes `tcp_offsets.csv`, a Markdown report, and a top-down offset plot under `outputs/tcp_offset/`.
+
+## Robot Execution
+
+After localization, the robot runs a simple, inspectable manipulation sequence:
+
+```text
+move above cube
+move to pre-grasp
+move to grasp height
+close gripper
+lift
+move above tray
+lower to tray drop height
+open gripper
+return home after command-driven place
+```
+
+The implementation uses two important details:
+
+- `move_pinch_center_to_position()` targets the midpoint between the Panda fingers, not just the end-effector link.
+- `ik_solver.py` wraps PyBullet IK so the motion layer can work in world coordinates.
+- `failsafe.py` watches PyBullet contacts during the GUI loop and freezes the arm if unsafe non-gripper collisions happen with the cube, tray, or table.
+
+## Core Controls
+
+Full controls are in [`docs/hotkeys.md`](docs/hotkeys.md). The only controls most users need are:
+
+| Key | Action |
+| --- | --- |
+| `l` | Type a natural-language command, parse it with Ollama, and execute it |
+| `j` | Run the vision-guided red-cube pick-and-place demo |
+| `r` | Randomize the scene and reset the robot |
+
+## Quick Start
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python -m src.sim.panda_env
+```
+
+Run the latest benchmark:
+
+```powershell
+python testing\test_pick_place_100.py --MV
+```
+
+Generate a visible multi-view debug run:
+
+```powershell
+python testing\test_multiview_gui.py
 ```
 
 ## Repository Map
 
 ```text
 VLA/
-├── config/
-│   └── robot_speeds.template.txt   # copy to robot_speeds.txt for local speed tuning
-├── docs/
-│   ├── hotkeys.md                  # full interactive controls
-│   ├── home.png                    # demo screenshot
-│   ├── place.png                   # demo screenshot
-│   └── red_detection_*.png         # OpenCV debug screenshot
-├── outputs/
-│   └── testing/                    # reliability-test plots, reports, CSVs
-├── src/
-│   ├── language/                   # command parsing
-│   ├── perception/                 # camera, color detection, depth localization
-│   ├── sim/                        # PyBullet scene, Panda control, IK, failsafe
-│   └── testing/                    # small sim sanity helpers
-├── testing/
-│   └── test_pick_place_100.py      # randomized reliability test
-├── requirements.txt
-└── README.md
+├── docs/                # demo screenshots and hotkeys
+├── outputs/             # detection images, multiview debug runs, benchmarks
+├── src/language/        # Ollama parser and command schema
+├── src/perception/      # camera, HSV detection, depth projection, multiview
+├── src/sim/             # PyBullet scene, robot control, IK, routines
+├── testing/             # benchmark and GUI debug scripts
+├── config/              # local robot speed tuning
+└── requirements.txt
 ```
 
-## Quick Start
+## Why This Project Is Interesting
 
-```powershell
-git clone <repo-url>
-cd VLA
+VLA-Lite is not a black-box policy demo. It shows the whole stack:
 
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+- A prompt becomes a validated robot task.
+- A color word becomes HSV ranges.
+- HSV ranges become a binary OpenCV mask.
+- Mask pixels become 3D PyBullet world points.
+- Single-view median localization becomes multi-view point-cloud reconstruction.
+- A reconstructed cube center becomes IK target poses.
+- Randomized benchmarks produce real success-rate evidence.
 
-pip install -r requirements.txt
-python -m src.sim.panda_env
-```
-
-Optional run modes:
-
-```powershell
-python -m src.sim.panda_env --verbose
-python -m src.sim.panda_env --test-gripper
-python -m src.sim.panda_env --extra-cubes 3
-```
-
-For local speed tuning:
-
-```powershell
-Copy-Item config\robot_speeds.template.txt config\robot_speeds.txt
-```
-
-`config/robot_speeds.txt` is ignored by git, so each machine can tune motion speed independently.
-
-## Core Controls
-
-Shown below are the most commonly used controls; the full list is in [`docs/hotkeys.md`](docs/hotkeys.md).
-
-| Key / Control | Action |
-| --- | --- |
-| `l` | Type a prompt, parse it with Ollama, and execute it |
-| `m` | Run the built-in demo prompt through Ollama |
-| `j` | Run the red-cube vision pick-and-place demo |
-| `q` | Detect the red cube and move above it |
-| `r` | Randomize scene, open gripper, and send robot home |
-| `h` | Return Panda to a safe home pose |
-| `y` | Save the current red-cube detection image |
-
-Other interactive controls are documented in `docs/hotkeys.md`.
-
-## Implementation Notes
-
-### Scene setup
-
-`src/sim/panda_env.py` creates the PyBullet GUI, loads the plane and Franka Panda, spawns the cube/tray objects, initializes the gripper, and runs the simulation loop.
-
-The scene always includes violet, blue, green, yellow, orange, and red cubes. `--extra-cubes` adds random visual distractors, and the sampler rejects cube/tray and cube/cube overlaps.
-
-### Wrist-camera perception
-
-The camera is mounted relative to the Panda end effector. Each perception pass captures RGB, depth, view matrix, and projection matrix from PyBullet.
-
-The OpenCV detector thresholds by requested color, extracts the strongest cube-shaped contour, computes a confidence score, and saves a bbox debug image. The depth step samples color-mask pixels, projects them into world coordinates, and uses the median point as the cube estimate.
-
-That gives the robot a practical target:
-
-```text
-color pixels in image -> depth values -> world-space cube position
-```
-
-### Robot control
-
-The motion code generates end-effector targets for approach, pre-grasp, grasp, lift, tray approach, drop, and release. `ik_solver.py` wraps PyBullet's `calculateInverseKinematics`, enforcing joint limits and a rest-pose bias. The pipeline validates and applies the solved joint targets via `robot_control.py` using PyBullet's position control APIs.
-
-### Language path
-
-Typed prompts go through Ollama, then schema validation, then robot execution:
-
-```text
-prompt -> ollama_parser.py -> command_schema.py -> command_executor.py
-```
-
-Ollama is only allowed to produce structured JSON. `command_schema.py` validates that JSON before any robot routine runs.
+That makes the project useful as a compact robotics learning system and as a clean demonstration of how vision, language, geometry, and action connect.

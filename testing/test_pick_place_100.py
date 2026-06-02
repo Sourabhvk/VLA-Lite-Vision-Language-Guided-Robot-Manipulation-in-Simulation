@@ -1,7 +1,7 @@
 # File: testing/test_pick_place_100.py
-# Intent: Runs repeated direct pick-and-place trials and writes result artifacts.
-# Usage: Manual benchmark script for scripted motion reliability in PyBullet DIRECT mode.
-# Presets: 1000 runs, tray/cube footprint sizes, output root, robot/world reference markers.
+# Intent: Runs repeated pick-and-place trials and writes result artifacts.
+# Usage: Manual benchmark script for scripted or multi-view motion reliability in PyBullet DIRECT mode.
+# Presets: run count, tray/cube footprint sizes, output root, robot/world reference markers.
 # Connects: src/sim/routines.py; src/sim/scene_objects.py; src/sim/robot_control.py; outputs/testing/.
 # User values: RUNS, geometry thresholds, and OUTPUT_ROOT.
 #
@@ -19,6 +19,7 @@
 # - print_summary(): Prints pass count, overlap count, and failure details.
 # - print_failure_summary(): Prints ranges and clusters for non-overlap failures.
 
+import argparse
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -29,12 +30,14 @@ import pybullet_data
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
+from src.perception.vision_routines import vision_pick_colored_cube, vision_place_in_blue_tray
 from src.sim.robot_control import configure_gripper_friction, move_arm_to_home, open_gripper, step_simulation
 from src.sim.routines import pick_and_place
 from src.sim.scene_objects import create_blue_tray, create_red_cube, sample_scene_positions
+from src.sim.scene_registry import set_object_position
 
 
-RUNS = 1000
+RUNS = 100
 TRAY_HALF_X = 0.12
 TRAY_HALF_Y = 0.08
 CUBE_HALF_SIZE = 0.03
@@ -75,6 +78,7 @@ def reset_scene():
     cube_position = cube_positions[0]
     cube_id, cube_position = create_red_cube(cube_position)
     create_blue_tray(tray_position)
+    set_object_position("blue_tray", tray_position)
     configure_gripper_friction(panda_id)
 
     move_arm_to_home(panda_id)
@@ -85,18 +89,30 @@ def reset_scene():
     return panda_id, cube_id, cube_position, tray_position
 
 
+def run_trial(panda_id, cube_position, tray_position, use_multiview):
+    if use_multiview:
+        if vision_pick_colored_cube(panda_id, "red"):
+            vision_place_in_blue_tray(panda_id)
+    else:
+        pick_and_place(panda_id, cube_position, tray_position)
+
+    step_simulation(seconds=1.0)
+
+
 def main():
+    args = parse_args()
     pyb.connect(pyb.DIRECT)
     results = []
-    output_dir = make_output_dir()
+    output_dir = make_output_dir(args.MV)
+    mode = "multiview" if args.MV else "direct"
+    print(f"Mode: {mode}")
 
     for run_index in range(1, RUNS + 1):
         panda_id, cube_id, cube_position, tray_position = reset_scene()
         initial_overlap = cube_intersects_tray(cube_position, tray_position)
 
         if not initial_overlap:
-            pick_and_place(panda_id, cube_position, tray_position)
-            step_simulation(seconds=1.0)
+            run_trial(panda_id, cube_position, tray_position, args.MV)
 
         success = False if initial_overlap else cube_in_tray(cube_id, tray_position)
         results.append((run_index, cube_position, tray_position, success, initial_overlap))
@@ -107,13 +123,20 @@ def main():
     write_results(results, output_dir)
     plot_start_positions(results, output_dir)
     plot_failure_heatmap(results, output_dir)
-    write_report(results, output_dir)
+    write_report(results, output_dir, mode)
     print_summary(results)
 
 
-def make_output_dir():
+def parse_args():
+    parser = argparse.ArgumentParser(description="Run pick-place benchmark trials.")
+    parser.add_argument("--MV", action="store_true", help="Use vision multi-view localization before picking.")
+    return parser.parse_args()
+
+
+def make_output_dir(use_multiview=False):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_dir = OUTPUT_ROOT / f"run_{timestamp}"
+    suffix = "multiview" if use_multiview else "direct"
+    output_dir = OUTPUT_ROOT / f"run_{timestamp}_{suffix}"
     output_dir.mkdir(parents=True, exist_ok=True)
     return output_dir
 
@@ -206,7 +229,7 @@ def plot_failure_heatmap(results, output_dir):
         label="tray",
     )
     add_reference_markers()
-    plt.colorbar(label="failure count")
+    plt.colorbar(image, label="failure count")
     plt.xlabel("cube start x")
     plt.ylabel("cube start y")
     plt.title("Failure heatmap by cube start position")
@@ -221,7 +244,7 @@ def add_reference_markers():
     plt.scatter(*WORLD_ORIGIN, c="purple", marker="o", s=40, label="world origin")
 
 
-def write_report(results, output_dir):
+def write_report(results, output_dir, mode):
     successes = sum(1 for result in results if result[3])
     overlaps = sum(1 for result in results if result[4])
     failures = [result[1] for result in results if not result[3] and not result[4]]
@@ -230,6 +253,7 @@ def write_report(results, output_dir):
 
     with path.open("w") as file:
         file.write("# Pick-and-Place Test Report\n\n")
+        file.write(f"- Mode: {mode}\n")
         file.write(f"- Runs: {RUNS}\n")
         file.write(f"- Successes: {successes}\n")
         file.write(f"- Success rate: {success_rate:.2%}\n")
