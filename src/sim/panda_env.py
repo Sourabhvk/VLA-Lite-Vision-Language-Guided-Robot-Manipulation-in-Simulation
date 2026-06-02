@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 import time
 
 import pybullet as pyb
@@ -24,6 +25,9 @@ from src.sim.scene_registry import set_object_position
 from src.testing.test_sim import run_gripper_test
 
 
+TIMING_DUMP_PATTERN = "timings_*.json"
+
+
 def build_cube_names(extra_cube_count):
     random_names = [f"random_{index + 1}" for index in range(extra_cube_count)]
     return DEFAULT_CUBE_NAMES + random_names
@@ -47,6 +51,14 @@ def disable_pybullet_profiling():
         pyb.configureDebugVisualizer(pyb.COV_ENABLE_PROFILE_TIMINGS, 0)
 
 
+def remove_pybullet_timing_dumps():
+    for path in Path.cwd().glob(TIMING_DUMP_PATTERN):
+        try:
+            path.unlink()
+        except OSError:
+            pass
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -67,6 +79,7 @@ def main():
     )
     args = parser.parse_args()
     set_verbose(args.verbose)
+    remove_pybullet_timing_dumps()
 
     # Use GUI for now so we can actually see what the robot is doing.
     pyb.connect(pyb.GUI)
@@ -129,6 +142,8 @@ def main():
             time.sleep(1.0 / 240.0)
     except KeyboardInterrupt:
         pyb.disconnect()
+    finally:
+        remove_pybullet_timing_dumps()
 
 
 if __name__ == "__main__":

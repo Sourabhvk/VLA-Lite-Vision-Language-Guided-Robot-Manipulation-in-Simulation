@@ -237,7 +237,7 @@ Shown below are the most commonly used controls; the full list is in [`docs/hotk
 
 | Key / Control | Action |
 | --- | --- |
-| `p` | Type a prompt, parse it with Ollama, and execute it |
+| `l` | Type a prompt, parse it with Ollama, and execute it |
 | `m` | Run the built-in demo prompt through Ollama |
 | `j` | Run the red-cube vision pick-and-place demo |
 | `q` | Detect the red cube and move above it |

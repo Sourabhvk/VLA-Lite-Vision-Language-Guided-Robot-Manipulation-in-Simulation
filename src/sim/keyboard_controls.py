@@ -113,7 +113,7 @@ def handle_keyboard_controls(panda_id, cube_ids=None, cube_names=None, tray_id=N
     if key_pressed(keys, "m"):
         run_text_command(panda_id, "pick red cube and place in blue tray")
 
-    if key_pressed(keys, "p"):
+    if key_pressed(keys, "l"):
         print("Command prompt active in terminal")
         focus_console_window()
         command = input("Command > ")
