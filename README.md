@@ -14,6 +14,8 @@ The project is intentionally small enough to understand end to end, but it inclu
 | --- | --- | --- |
 | <img src="docs/home.png" width="300"> | <img src="docs/red_detection_20260529_003546_566007.png" width="300"> | <img src="docs/place.png" width="300"> |
 
+[Watch the 30-second demo video](demo.mp4)
+
 ## Tech Stack
 
 | Layer | Tech |
