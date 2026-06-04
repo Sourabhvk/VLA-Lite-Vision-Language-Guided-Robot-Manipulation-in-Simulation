@@ -335,7 +335,7 @@ python testing\test_multiview_gui.py
 
 ```text
 VLA/
-├── docs/                # demo screenshots and hotkeys
+├── docs/                # demo screenshots, hotkeys, and source citations
 ├── outputs/             # detection images, multiview debug runs, benchmarks
 ├── src/language/        # Ollama parser and command schema
 ├── src/perception/      # camera, HSV detection, depth projection, multiview
@@ -358,3 +358,7 @@ VLA-Lite is not a black-box policy demo. It shows the whole stack:
 - Randomized benchmarks produce real success-rate evidence.
 
 That makes the project useful as a compact robotics learning system and as a clean demonstration of how vision, language, geometry, and action connect.
+
+## Sources
+
+External references, citation notes, and local benchmark artifacts used as evidence are tracked in [`docs/sources.md`](docs/sources.md).
