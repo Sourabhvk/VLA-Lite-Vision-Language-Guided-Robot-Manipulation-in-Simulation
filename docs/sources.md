@@ -8,24 +8,6 @@ Functions:
 - None: Documentation file.
 -->
 
-# Sources And Citations
-
-Use this file as the project log for external references that informed implementation, testing, or documentation.
-
-## How To Cite Sources
-
-When adding a claim, algorithm, benchmark note, or implementation choice that came from an external source, include:
-
-| Field | What to record |
-| --- | --- |
-| Source | Human-readable title or page name |
-| Link | Direct URL or local path |
-| Date read | Date you used it |
-| Used for | The specific code, doc, test, or design decision it informed |
-| Notes | Short summary of the relevant detail |
-
-Prefer direct primary sources when possible: official docs, project repositories, standards, papers, or generated project artifacts.
-
 ## Current Project Sources
 
 | Source | Link | Date read | Used for | Notes |
